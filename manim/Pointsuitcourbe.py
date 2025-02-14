@@ -13,16 +13,5 @@ class PointQuiSuitCourbe(Scene):
         self.play(Create(AXY, run_time = 3) ,Create(labels),Create(Courbe,run_time = 3))
         self.play(MoveAlongPath(Point, partial_curve), run_time = 3, rate_func=smooth) #animation du point le long de l'intervalle qu'on veut
         self.wait(3)
-        
-
-
-    
-        
-from manim import *
-
-class HelloLaTeX(Scene):
-    def construct(self):
-        tex = Tex(r"\LaTeX", font_size=144)
-        self.play(FadeIn(tex, run_time = 5))
-
+        self.interactive_embed()
         

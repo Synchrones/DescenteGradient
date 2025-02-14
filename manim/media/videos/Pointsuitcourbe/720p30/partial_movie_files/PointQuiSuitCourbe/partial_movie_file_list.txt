@@ -1,0 +1,4 @@
+# This file is used internally by FFMPEG.
+file 'file:C:/Users/jean guiard/Documents/1T2/2A/Projet/descente_gradient/manim/media/videos/Pointsuitcourbe/720p30/partial_movie_files/PointQuiSuitCourbe/2016333726_3567958557_223132457.mp4'
+file 'file:C:/Users/jean guiard/Documents/1T2/2A/Projet/descente_gradient/manim/media/videos/Pointsuitcourbe/720p30/partial_movie_files/PointQuiSuitCourbe/543634251_1468886799_2886554723.mp4'
+file 'file:C:/Users/jean guiard/Documents/1T2/2A/Projet/descente_gradient/manim/media/videos/Pointsuitcourbe/720p30/partial_movie_files/PointQuiSuitCourbe/543634251_2552855209_866969967.mp4'
