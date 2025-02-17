@@ -1,6 +1,6 @@
 from manim import *
 from manim.opengl import *
-
+import re
 
 class Test(Scene):
     def construct(self):
@@ -31,6 +31,10 @@ class Test2(Scene):
                                 gloss=0
                                 )
         surface.set_color_by_code("color = vec4(point.x, point.y, point.z, 1);")
-        surface.refresh_shader_data()
+        surface.get_shader_wrapper().program_code["fragment_shader"] = re.sub(
+            "///// INSERT COLOR FUNCTION HERE /////",
+            "color = vec4(point.x, point.y, point.z, 1);",
+            surface.get_shader_wrapper().program_code["fragment_shader"]
+        )
         self.play(Create(surface))
         self.interactive_embed()
