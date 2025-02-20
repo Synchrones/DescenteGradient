@@ -1,11 +1,9 @@
 import random
-import numpy as np
 
 
-def descente_gradient(fnc, derives, depart, epsilon, pas):
+def descente_gradient(derives, depart, epsilon, pas):
     """
     Descente de gradient classique à n variables
-    IN : fnc (function) - la fonction étudiée
     IN : derives (list(function)) - les dérivées selon chaque variable de la fonction
     IN : depart (list(float)) - le point de départ de la descente
     IN : epsilon (float) - la valeur de la dérivée à partir de laquelle on arrête la descente (on n'atteint pas forcément le 0)
@@ -25,8 +23,7 @@ def descente_gradient(fnc, derives, depart, epsilon, pas):
     return depart, iterations
 
 # ex d'appel
-print(descente_gradient(lambda x, y: x**2 + y**2,
-                        [lambda x: 2*x, lambda y: 2*y],
+print(descente_gradient([lambda x: 2*x, lambda y: 2*y],
                         [random.randint(-100, 100), random.randint(-100, 100)],
                         0.1,
                         0.4))
