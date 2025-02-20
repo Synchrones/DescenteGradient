@@ -25,5 +25,5 @@ def descente_gradient(derives, depart, epsilon, pas):
 # ex d'appel
 print(descente_gradient([lambda x: 2*x, lambda y: 2*y],
                         [random.randint(-100, 100), random.randint(-100, 100)],
-                        0.1,
+                        0.0000000000000000000000000000000000000000000000000000000000000000000000000001,
                         0.4))
