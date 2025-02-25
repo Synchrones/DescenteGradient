@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="59696f9d-00f2-41ae-a321-6793a52ce224" name="Changes" comment="simplifications">
-      <change afterPath="$PROJECT_DIR$/manim/IllustrationDescente.py" afterDir="false" />
+    <list default="true" id="59696f9d-00f2-41ae-a321-6793a52ce224" name="Changes" comment="illustration descente 3D">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/algos/DescenteClassique.py" beforeDir="false" afterPath="$PROJECT_DIR$/algos/DescenteClassique.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/manim/IllustrationDescente.py" beforeDir="false" afterPath="$PROJECT_DIR$/manim/IllustrationDescente.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,18 +48,18 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.DescenteClassique.executor": "Run",
-    "Python.test.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "master",
-    "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/Users/Axel/Desktop/travail/première/DescenteGradient/.venv/Lib/site-packages",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.DescenteClassique.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Axel/Desktop/travail/première/DescenteGradient/.venv/Lib/site-packages&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Axel\Desktop\travail\première\DescenteGradient\manim" />
@@ -89,7 +88,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="test" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+    <configuration name="PointSuitSurface" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="DescenteGradient" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -103,7 +102,7 @@
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/manim/test.py" />
+      <option name="SCRIPT_NAME" value="C:\Users\Axel\Desktop\travail\première\DescenteGradient\manim\PointSuitSurface.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -182,7 +181,39 @@
       <option name="project" value="LOCAL" />
       <updated>1740056540908</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="descente x manim">
+      <option name="closed" value="true" />
+      <created>1740072114662</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1740072114664</updated>
+    </task>
+    <task id="LOCAL-00008" summary="avance sur animation descente">
+      <option name="closed" value="true" />
+      <created>1740494505406</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1740494505406</updated>
+    </task>
+    <task id="LOCAL-00009" summary="bug fix">
+      <option name="closed" value="true" />
+      <created>1740501442213</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1740501442213</updated>
+    </task>
+    <task id="LOCAL-00010" summary="illustration descente 3D">
+      <option name="closed" value="true" />
+      <created>1740504214721</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1740504214729</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -200,8 +231,11 @@
     <MESSAGE value="Initial commit" />
     <MESSAGE value="test commit" />
     <MESSAGE value="Descente de gradient classique et tests manim" />
-    <MESSAGE value="bug fix" />
     <MESSAGE value="simplifications" />
-    <option name="LAST_COMMIT_MESSAGE" value="simplifications" />
+    <MESSAGE value="descente x manim" />
+    <MESSAGE value="avance sur animation descente" />
+    <MESSAGE value="bug fix" />
+    <MESSAGE value="illustration descente 3D" />
+    <option name="LAST_COMMIT_MESSAGE" value="illustration descente 3D" />
   </component>
 </project>
