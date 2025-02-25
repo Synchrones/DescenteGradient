@@ -27,14 +27,23 @@ class Test2(Scene):
                                 u_range=(-5, 5),
                                 v_range=(-5, 5),
                                 color=BLUE,
-                                shadow=0.5,
-                                gloss=0
                                 )
-        surface.set_color_by_code("color = vec4(point.x, point.y, point.z, 1);")
-        surface.get_shader_wrapper().program_code["fragment_shader"] = re.sub(
-            "///// INSERT COLOR FUNCTION HERE /////",
-            "color = vec4(point.x, point.y, point.z, 1);",
-            surface.get_shader_wrapper().program_code["fragment_shader"]
-        )
         self.play(Create(surface))
+        surface.set_color_by_code("color = vec4(point.x, point.y, point.z, 1);")
+        print(surface.get_shader_wrapper().program_code["fragment_shader"])
+        self.interactive_embed()
+
+
+class Test3(Scene):
+    def construct(self):
+        axes = ThreeDAxes()
+        self.add(axes)
+        surface = Surface(lambda u, v: (u, v, np.cos(u) + np.sin(v)),
+                                u_range=(-5, 5),
+                                v_range=(-5, 5),
+                                fill_color=BLUE,
+                                resolution=(50, 50)
+                                )
+        self.play(Create(surface))
+        surface.set_fill_by_value(axes, [BLUE, RED])
         self.interactive_embed()

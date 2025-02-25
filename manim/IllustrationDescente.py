@@ -4,7 +4,7 @@ from manim import *
 from pyglet.window import *
 
 depart = []
-derives = [lambda x: float((np.cos(x) - x * np.sin(x))/ x**2)]
+derives = [lambda x: float((np.cos(x) * x - np.sin(x)) / x**2)]
 nouvelles_coords = []
 point = None
 axes = None
@@ -40,19 +40,21 @@ class DescenteGradient(Scene):
         global point
         global axes
         if symbol == key.SPACE:
-            termine = True
             print(depart)
             pentes = [derives[i](depart[i]) for i in range(len(derives))]
             for var in range(len(pentes)):
-                nouvelles_coords[var] = depart[var] - pentes[var] * 0.4
+                nouvelles_coords[var] = depart[var] - pentes[var] * 2
                 print(nouvelles_coords, depart, pentes)
-                courbe_partielle = axes.plot(fnc, x_range=[min(depart[0], nouvelles_coords[0]),
-                                                           max(depart[0], nouvelles_coords[0]),
-                                                           abs((depart[0] + nouvelles_coords[0])) / 10])
-                if nouvelles_coords[0] - depart[0] > 0:
-                    self.play(MoveAlongPath(point, courbe_partielle), run_time=1, rate_func=smooth)
-                else:
-                    self.play(MoveAlongPath(point, courbe_partielle.reverse_points()), run_time=0.5, rate_func=smooth)
+                try:
+                    courbe_partielle = axes.plot(fnc, x_range=[min(depart[0], nouvelles_coords[0]),
+                                                               max(depart[0], nouvelles_coords[0]),
+                                                               (abs(depart[0]) + abs(nouvelles_coords[0])) / 50])
+                    if nouvelles_coords[0] - depart[0] > 0:
+                        self.play(MoveAlongPath(point, courbe_partielle), run_time=1, rate_func=smooth)
+                    else:
+                        self.play(MoveAlongPath(point, courbe_partielle.reverse_points()), run_time=0.5, rate_func=smooth)
+                except ValueError:
+                    self.remove(point)
+                    point = Dot(point=axes.coords_to_point(nouvelles_coords[0], fnc(nouvelles_coords[0])))
+                    self.add(point)
                 depart = nouvelles_coords[:]
-                if abs(pentes[var]) > 0.1:
-                    termine = False
