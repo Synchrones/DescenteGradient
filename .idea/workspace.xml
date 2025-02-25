@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="59696f9d-00f2-41ae-a321-6793a52ce224" name="Changes" comment="bug fix">
+    <list default="true" id="59696f9d-00f2-41ae-a321-6793a52ce224" name="Changes" comment="illustration descente 3D">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/manim/IllustrationDescente.py" beforeDir="false" afterPath="$PROJECT_DIR$/manim/IllustrationDescente.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/manim/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/manim/PointSuitSurface.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -206,7 +205,15 @@
       <option name="project" value="LOCAL" />
       <updated>1740501442213</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="illustration descente 3D">
+      <option name="closed" value="true" />
+      <created>1740504214721</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1740504214729</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -228,6 +235,7 @@
     <MESSAGE value="descente x manim" />
     <MESSAGE value="avance sur animation descente" />
     <MESSAGE value="bug fix" />
-    <option name="LAST_COMMIT_MESSAGE" value="bug fix" />
+    <MESSAGE value="illustration descente 3D" />
+    <option name="LAST_COMMIT_MESSAGE" value="illustration descente 3D" />
   </component>
 </project>

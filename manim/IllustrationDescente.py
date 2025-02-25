@@ -107,7 +107,8 @@ class Descente3D(Scene):
                 nouvelles_coords[var] = depart[var] - pentes[var] * 1
                 if abs(pentes[var]) > 0.001:
                     termine = False
-            self.play(UpdateFromAlphaFunc(point, deplace_point), run_time=0.5) # TODO : manière plus opti de bouger point (gros délais)
+            #self.play(MoveAlongPath(point, creer_courbe_partielle(depart, nouvelles_coords, fnc)), run_time=0.5)
+            self.play(UpdateFromAlphaFunc(point, deplace_point), run_time=0.5) # TODO : manière plus opti de bouger point? (gros délais)
             depart = nouvelles_coords[:]
 
         self.interactive_embed()
@@ -117,5 +118,8 @@ class Descente3D(Scene):
         if symbol == key.SPACE:
             suivant = True
 
-    def creer_courbe_partielle(depart, arrive, fnc):
-        pass
+
+def creer_courbe_partielle(depart, arrive, fnc):
+    u_fnc = lambda t: depart[0] + (arrive[0] - depart[0]) * t
+    v_fnc = lambda t: depart[1] + (arrive[1] - depart[1]) * t
+    return ParametricFunction(lambda t : np.array([u_fnc(t), v_fnc(t), fnc(u_fnc(t), v_fnc(t))]))
