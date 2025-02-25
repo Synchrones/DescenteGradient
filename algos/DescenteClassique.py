@@ -13,7 +13,7 @@ def descente_gradient(derives, depart, epsilon, pas):
     terminer = False
     while not terminer:
         terminer = True
-        pentes = [derives[i](depart[i]) for i in range(len(derives))]
+        pentes = [derives[i](*depart) for i in range(len(derives))]
         for var in range(len(pentes)):
             depart[var] -= pentes[var] * pas
             if abs(pentes[var]) > epsilon:
@@ -23,7 +23,7 @@ def descente_gradient(derives, depart, epsilon, pas):
     return depart, iterations
 
 # ex d'appel
-print(descente_gradient([lambda x: 2*x, lambda y: 2*y],
+print(descente_gradient([lambda x, y: 2*x, lambda x, y: 2*y],
                         [random.randint(-100, 100), random.randint(-100, 100)],
-                        0.0000000000000000000000000000000000000000000000000000000000000000000000000001,
+                        0.01,
                         0.4))
