@@ -4,10 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="59696f9d-00f2-41ae-a321-6793a52ce224" name="Changes" comment="descente x manim">
+    <list default="true" id="59696f9d-00f2-41ae-a321-6793a52ce224" name="Changes" comment="bug fix">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/manim/3Dtests.py" beforeDir="false" afterPath="$PROJECT_DIR$/manim/3Dtests.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/manim/IllustrationDescente.py" beforeDir="false" afterPath="$PROJECT_DIR$/manim/IllustrationDescente.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/manim/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/manim/PointSuitSurface.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -89,7 +89,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="test" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+    <configuration name="PointSuitSurface" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="DescenteGradient" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -103,7 +103,7 @@
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/manim/test.py" />
+      <option name="SCRIPT_NAME" value="C:\Users\Axel\Desktop\travail\première\DescenteGradient\manim\PointSuitSurface.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -190,7 +190,23 @@
       <option name="project" value="LOCAL" />
       <updated>1740072114664</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="avance sur animation descente">
+      <option name="closed" value="true" />
+      <created>1740494505406</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1740494505406</updated>
+    </task>
+    <task id="LOCAL-00009" summary="bug fix">
+      <option name="closed" value="true" />
+      <created>1740501442213</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1740501442213</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -208,9 +224,10 @@
     <MESSAGE value="Initial commit" />
     <MESSAGE value="test commit" />
     <MESSAGE value="Descente de gradient classique et tests manim" />
-    <MESSAGE value="bug fix" />
     <MESSAGE value="simplifications" />
     <MESSAGE value="descente x manim" />
-    <option name="LAST_COMMIT_MESSAGE" value="descente x manim" />
+    <MESSAGE value="avance sur animation descente" />
+    <MESSAGE value="bug fix" />
+    <option name="LAST_COMMIT_MESSAGE" value="bug fix" />
   </component>
 </project>
