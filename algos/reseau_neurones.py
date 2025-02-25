@@ -56,32 +56,7 @@ def calcul(entrees : np.array, reseau : list[np.array], func_activation) -> list
 
 
 def fonction_activation(x):
-    return 1 / (1 + np.exp( x))
-
-
-#données
-import pandas as pd
-pd.options.display.max_columns = None
-
-#affichage
-from matplotlib import pyplot as plt
-import matplotlib
-import time
-
-
-def formatage(table):
-    result = []
-    for element in table:
-        result.append(element)
-    return element
-
-# returns the image in digit (28x28)
-def getImageMatriceDigit(dataset, rowIndex):
-    return dataset.iloc[rowIndex, 0:].values.reshape(28,28)
-
-# returns the image matrix in one row
-def getImageLineDigit(dataset, rowIndex):
-    return dataset.iloc[rowIndex, 0:]
+    return 1 / (1 + np.exp(x))
 
 
 # scenario

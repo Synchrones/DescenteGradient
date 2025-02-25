@@ -3,6 +3,7 @@ from reseau_neurones import *
 #données
 import pandas as pd
 pd.options.display.max_columns = None
+import tqdm
 
 #affichage
 from matplotlib import pyplot as plt
@@ -41,8 +42,13 @@ if __name__ == '__main__':
     X_TEST = TEST.copy()
     y = TRAIN.label
     del X_TRAIN['label']
-    immatrice = Image_matrice(X_TRAIN, 3)
-    imligne = Image_ligne(X_TRAIN, 3)
-    plt.imshow(immatrice, cmap=matplotlib.cm.binary, interpolation="nearest")
-    plt.axis("off")
-    plt.show()
+    taille = 0
+    for key in X_TRAIN:
+        taille += 1
+    R = reseau([taille, 100, 10])
+    for i in tqdm.tqdm(range(len(X_TRAIN))):
+        entrees = X_TRAIN.loc[i].tolist()
+        sorties = calcul(entrees, R, lambda x : 1 / (1 + np.exp(x)))
+        #print(sorties)
+        #print(i)
+    print('fini')
