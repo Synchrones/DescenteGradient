@@ -29,7 +29,13 @@ class DescenteGradient(Scene):
         point = Dot(point=axes.coords_to_point(depart[0], fnc(depart[0])))
         self.play(Create(axes, run_time=3), Create(labels), Create(courbe, run_time=3))
         self.add(point)
-
+        """
+        label_coords = always_redraw(lambda: Text(f"Coordonnées du point : "
+                                                  f"{[round(float(coord), 2) for coord in axes.coords_to_point(*point.get_center()[:-1])[:-1]]}",
+                                                  font_size=30)
+                                     .to_edge(DR))
+        self.add(label_coords)
+        """
         termine = False
         while not termine:
             termine = True
@@ -39,7 +45,7 @@ class DescenteGradient(Scene):
             pentes = [derives[i](depart[i]) for i in range(len(derives))]
             for var in range(len(pentes)):
                 nouvelles_coords[var] = depart[var] - pentes[var] * 2
-                if abs(pentes[var]) > 0.001:
+                if abs(pentes[var]) > 0.01:
                     termine = False
                 try:
                     courbe_partielle = axes.plot(fnc, x_range=[min(depart[0], nouvelles_coords[0]),
@@ -52,7 +58,7 @@ class DescenteGradient(Scene):
                                   rate_func=smooth)
                 except ValueError: # problèmes pour créer la courbe si le déplacement est trop petit
                     self.play(point.animate.move_to(axes.coords_to_point(nouvelles_coords[0], fnc(nouvelles_coords[0]))),
-                              run_time=0.2)
+                              run_time=0.4, rate_func=smooth)
                 depart = nouvelles_coords[:]
 
         self.interactive_embed()
