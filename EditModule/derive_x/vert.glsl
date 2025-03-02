@@ -26,7 +26,7 @@ vec4 red_green_gradient(float value, float min_value, float max_value){
         red = 1;
         green = 2 * (max_value - value) / (max_value - min_value);
     }
-    return vec4(red, green, 0, 1);
+    return vec4(red, green, 0, 0.5);
 }
 
 void main(){
