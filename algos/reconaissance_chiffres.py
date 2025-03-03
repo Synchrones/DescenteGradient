@@ -37,7 +37,7 @@ def Image_ligne(table : pd.DataFrame, ligne : int) -> pd.Series:
 if __name__ == '__main__':
     #telechargement de la base de donnée
     TRAIN = pd.read_csv('train.csv')#, skiprows = 1)
-    TEST = pd.read_csv("test.csv", delimiter = ', ')#, skiprows = 1)
+    TEST = pd.read_csv("test.csv")#, skiprows = 1)
     X_TRAIN = TRAIN.copy()
     X_TEST = TEST.copy()
     y = TRAIN.label
@@ -45,10 +45,14 @@ if __name__ == '__main__':
     taille = 0
     for key in X_TRAIN:
         taille += 1
-    R = reseau([taille, 100, 10])
+    couche1 = 100
+    nbsorties = 10
+    R = reseau([taille, couche1, nbsorties])
+    B = biais(R)
+    sorties = np.empty((1, 1))
     for i in tqdm.tqdm(range(len(X_TRAIN))):
         entrees = X_TRAIN.loc[i].tolist()
-        sorties = calcul(entrees, R, lambda x : 1 / (1 + np.exp(x)))
+        sorties = np.concatenate(sorties, calcul(entrees, R, lambda x : 1 / (1 + np.exp(x)), B))
         #print(sorties)
         #print(i)
     print('fini')

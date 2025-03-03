@@ -24,6 +24,13 @@ def reseau(couches : list[int]) -> list[np.array]:
     return reseau
 
 
+def biais(reseau):
+    biais = []
+    for i in range(len(reseau) - 1):
+        biais.append(np.array([randint(-50, 50) for j in range(len(reseau[i + 1]))]))
+    return  biais
+
+
 def modif_poid(reseau : list[np.array], couche : int, ligne : int, colone : int, nouveau_poid : float) -> None:
 
     """
@@ -39,7 +46,7 @@ def modif_poid(reseau : list[np.array], couche : int, ligne : int, colone : int,
     reseau[couche][ligne, colone] = nouveau_poid
 
 
-def calcul(entrees : np.array, reseau : list[np.array], func_activation) -> list:
+def calcul(entrees : np.array, reseau : list[np.array], func_activation, biais : list[np.array]) -> list:
     
     """
     Fait passer les entrées dans un réseau retourne les sorties.
@@ -49,8 +56,8 @@ def calcul(entrees : np.array, reseau : list[np.array], func_activation) -> list
     IN : func_activation (function) - la fonction d'activation.
     """
 
-    for matrice in reseau:
-       entrees = func_activation(np.dot(entrees, matrice))
+    for i, matrice in enumerate(reseau):
+       entrees = func_activation(np.dot(np.add(entrees, matrice)) + biais[i])
     
     return entrees
 
@@ -67,3 +74,5 @@ if __name__ == '__main__':
     print(m)
     modif_poid(m, 1, 1, 1, 69)
     print(m)
+    b = biais(m)
+    print(b)
