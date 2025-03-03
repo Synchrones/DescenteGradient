@@ -1,4 +1,4 @@
-from random import randint
+import random
 from collections.abc import Callable
 
 class Neurone:
@@ -36,12 +36,15 @@ class Reseau():
         couches : liste des couches du réseau contient le nombre de noeuds pour la couche de l'indice
         '''
         self.entrees = [0]*couches[0]
-        self.couche1 = [Neurone(randint(1, 5), randint(5, 10)) for i in range(couches[1])]
-        self.couche2 = [Neurone(randint(1, 5), randint(5, 10)) for i in range(couches[2])]
+        self.couche1 = [Neurone([random.uniform(-0.5, 0.5) for i in range(couches[0])], random.uniform(-0.5, 0.5)) for j in range(couches[1])]
+        self.couche2 = [Neurone([random.uniform(-0.5, 0.5) for i in range(couches[1])], random.uniform(-0.5, 0.5)) for j in range(couches[2])]
     
 
     def __str__(self):
-        string ='[['
+        string ='[[[entrées:'
+        for entree in self.entrees:
+            string += str(entree)
+        string += ']'
         for Neurone in self.couche1:
             string += str(Neurone)
         string += ']'
@@ -52,5 +55,4 @@ class Reseau():
 
 #scenario
 if __name__ == '__main__':
-    print(Neurone(1, 2))
-    print(Reseau([4, 4, 4]))
+    print(Reseau([484, 10, 10]))
