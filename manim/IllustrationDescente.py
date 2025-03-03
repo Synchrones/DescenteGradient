@@ -3,10 +3,11 @@ import random
 import numpy as np
 from manim import *
 from pyglet.window import *
-
+from manim.opengl import *
 
 
 suivant = False
+change_surface = False
 
 # utilisé pour mettre en pause le programme en attendant
 def attendre_entree():
@@ -29,7 +30,13 @@ class DescenteGradient(Scene):
         point = Dot(point=axes.coords_to_point(depart[0], fnc(depart[0])))
         self.play(Create(axes, run_time=3), Create(labels), Create(courbe, run_time=3))
         self.add(point)
-
+        """
+        label_coords = always_redraw(lambda: Text(f"Coordonnées du point : "
+                                                  f"{[round(float(coord), 2) for coord in axes.coords_to_point(*point.get_center()[:-1])[:-1]]}",
+                                                  font_size=30)
+                                     .to_edge(DR))
+        self.add(label_coords)
+        """
         termine = False
         while not termine:
             termine = True
@@ -39,7 +46,7 @@ class DescenteGradient(Scene):
             pentes = [derives[i](depart[i]) for i in range(len(derives))]
             for var in range(len(pentes)):
                 nouvelles_coords[var] = depart[var] - pentes[var] * 2
-                if abs(pentes[var]) > 0.001:
+                if abs(pentes[var]) > 0.01:
                     termine = False
                 try:
                     courbe_partielle = axes.plot(fnc, x_range=[min(depart[0], nouvelles_coords[0]),
@@ -52,7 +59,7 @@ class DescenteGradient(Scene):
                                   rate_func=smooth)
                 except ValueError: # problèmes pour créer la courbe si le déplacement est trop petit
                     self.play(point.animate.move_to(axes.coords_to_point(nouvelles_coords[0], fnc(nouvelles_coords[0]))),
-                              run_time=0.2)
+                              run_time=0.4, rate_func=smooth)
                 depart = nouvelles_coords[:]
 
         self.interactive_embed()
@@ -66,8 +73,8 @@ class DescenteGradient(Scene):
 class Descente3D(Scene):
     def construct(self):
         def fnc(u, v):
-            return np.sin(u) * np.cos(v)
-        derives = [lambda u, v : np.cos(u) * np.cos(v), lambda u, v: - np.sin(u) * np.sin(v)]
+            return np.cos(u) * np.sin(v)
+        derives = [lambda u, v : - np.sin(u) * np.sin(v), lambda u, v: np.cos(u) * np.cos(v)]
         depart = [random.uniform(-3, 3), random.uniform(-3, 3)]
         nouvelles_coords = depart[:]
 
@@ -78,6 +85,9 @@ class Descente3D(Scene):
             pt.move_to([x, y, z])
 
         global suivant
+        global change_surface
+        surfaces = []
+        compteur = 0
         self.camera.set_euler_angles(phi=45 * DEGREES, theta=45 * DEGREES)
         axes = ThreeDAxes(x_range=[-10, 10], y_range=[-10, 10], z_range=[-10, 10])
         labels = axes.get_axis_labels(x_label="x", y_label="y", z_label="z")
@@ -90,17 +100,58 @@ class Descente3D(Scene):
                                 fill_opacity=0.5
                                 )
         surface.set_fill_by_value(axes, [(GREEN_B, -2), (YELLOW, 0), (RED, 2)])
+        surfaces.append(surface)
+
+        surface_derive_x = OpenGLSurface(lambda u, v: (u, v, fnc(u, v)),
+                                u_range=(-5, 5),
+                                v_range=(-5, 5),
+                                color=BLUE,
+                                shadow=0.2
+                                )
+        surface_derive_x.should_render = False
+        self.add(surface_derive_x)
+        surface_derive_x.reload_shader_wrapper()
+        surface_derive_x.get_shader_wrapper().shader_folder = "derive_x"
+        surfaces.append(surface_derive_x)
+
+        surface_derive_y = OpenGLSurface(lambda u, v: (u, v, fnc(u, v)),
+                                         u_range=(-5, 5),
+                                         v_range=(-5, 5),
+                                         color=BLUE,
+                                         shadow=0.2
+                                         )
+        surface_derive_y.should_render = False
+        self.add(surface_derive_y)
+        surface_derive_y.reload_shader_wrapper()
+        surface_derive_y.get_shader_wrapper().shader_folder = "derive_y"
+        surfaces.append(surface_derive_y)
+
         self.play(Create(surface))
         point = Dot3D(point=[depart[0], depart[1], fnc(depart[0], depart[1])],
                       color=RED,
                       radius=0.08)
         self.add(point)
-
         termine = False
         while not termine:
-            termine = True
             self.wait(100000, attendre_entree)  # est passé quand la fonction on_key_press est appelée
             suivant = False
+            if change_surface:
+                change_surface = False
+                if compteur == 0:
+                    surfaces[0].set_opacity(0)
+                    surfaces[1].should_render = True
+                    compteur = 1
+                elif compteur == 1:
+                    surfaces[1].should_render = False
+                    surfaces[2].should_render = True
+                    compteur = 2
+                else:
+                    surfaces[0].set_opacity(0.5)
+                    surfaces[2].should_render = False
+                    compteur = 0
+                continue
+
+            termine = True
             print(depart)
             pentes = [derives[i](*depart) for i in range(len(derives))]
             for var in range(len(pentes)):
@@ -115,8 +166,13 @@ class Descente3D(Scene):
 
     def on_key_press(self, symbol, modifiers):
         global suivant
+        global change_surface
         if symbol == key.SPACE:
             suivant = True
+        if symbol == key.TAB:
+            suivant = True
+            change_surface = True
+
 
 
 def creer_courbe_partielle(depart, arrive, fnc):

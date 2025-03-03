@@ -1,6 +1,6 @@
 from manim import *
 from manim.opengl import *
-import re
+import pathlib
 
 class Test(Scene):
     def construct(self):
@@ -23,14 +23,15 @@ class Test(Scene):
 
 class Test2(Scene):
     def construct(self):
-        surface = OpenGLSurface(lambda u, v: (u, v, np.cos(u) + np.sin(v)),
+        surface = OpenGLSurface(lambda u, v: (u, v, np.cos(u) * np.sin(v)),
                                 u_range=(-5, 5),
                                 v_range=(-5, 5),
-                                color=BLUE,
+                                color=BLUE
                                 )
         self.play(Create(surface))
-        surface.set_color_by_code("color = vec4(point.x, point.y, point.z, 1);")
-        print(surface.get_shader_wrapper().program_code["fragment_shader"])
+        # surface.set_color_by_code("color = vec4(point.x, point.y, point.z, 1);")
+        surface.reload_shader_wrapper()
+        surface.get_shader_wrapper().shader_folder = "derive_x"
         self.interactive_embed()
 
 
@@ -38,12 +39,13 @@ class Test3(Scene):
     def construct(self):
         axes = ThreeDAxes()
         self.add(axes)
-        surface = Surface(lambda u, v: (u, v, np.cos(u) + np.sin(v)),
+        surface = Surface(lambda u, v: (u, v, np.cos(u) * np.sin(v)),
                                 u_range=(-5, 5),
                                 v_range=(-5, 5),
                                 fill_color=BLUE,
-                                resolution=(50, 50)
+                                resolution=(20, 20),
+                                fill_opacity = 1
                                 )
         self.play(Create(surface))
-        surface.set_fill_by_value(axes, [BLUE, RED])
+        # surface.set_fill_by_value(axes, [BLUE, RED])
         self.interactive_embed()
