@@ -92,6 +92,7 @@ class Descente3D(Scene):
         axes = ThreeDAxes(x_range=[-10, 10], y_range=[-10, 10], z_range=[-10, 10])
         labels = axes.get_axis_labels(x_label="x", y_label="y", z_label="z")
         self.play(Create(axes), Create(labels), run_time=4)
+        """
         surface = Surface(lambda u, v: np.array([u, v, fnc(u, v)]),
                                 u_range=(-5, 5),
                                 v_range=(-5, 5),
@@ -100,6 +101,16 @@ class Descente3D(Scene):
                                 fill_opacity=0.5
                                 )
         surface.set_fill_by_value(axes, [(GREEN_B, -2), (YELLOW, 0), (RED, 2)])
+        surfaces.append(surface)
+        """
+        surface = OpenGLSurface(lambda u, v: (u, v, fnc(u, v)),
+                                u_range=(-5, 5),
+                                v_range=(-5, 5),
+                                color=BLUE,
+                                shadow=0.2
+                                )
+        surface.reload_shader_wrapper()
+        surface.get_shader_wrapper().shader_folder = "gradient_z"
         surfaces.append(surface)
 
         surface_derive_x = OpenGLSurface(lambda u, v: (u, v, fnc(u, v)),
@@ -138,7 +149,7 @@ class Descente3D(Scene):
             if change_surface:
                 change_surface = False
                 if compteur == 0:
-                    surfaces[0].set_opacity(0)
+                    surfaces[0].should_render = False
                     surfaces[1].should_render = True
                     compteur = 1
                 elif compteur == 1:
@@ -146,7 +157,7 @@ class Descente3D(Scene):
                     surfaces[2].should_render = True
                     compteur = 2
                 else:
-                    surfaces[0].set_opacity(0.5)
+                    surfaces[0].should_render = True
                     surfaces[2].should_render = False
                     compteur = 0
                 continue
@@ -159,7 +170,7 @@ class Descente3D(Scene):
                 if abs(pentes[var]) > 0.001:
                     termine = False
             #self.play(MoveAlongPath(point, creer_courbe_partielle(depart, nouvelles_coords, fnc)), run_time=0.5)
-            self.play(UpdateFromAlphaFunc(point, deplace_point), run_time=0.5) # TODO : manière plus opti de bouger point? (gros délais)
+            self.play(UpdateFromAlphaFunc(point, deplace_point), run_time=1) # TODO : manière plus opti de bouger point? (gros délais)
             depart = nouvelles_coords[:]
 
         self.interactive_embed()
