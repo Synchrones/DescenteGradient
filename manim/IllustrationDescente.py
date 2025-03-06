@@ -8,6 +8,7 @@ from manim.opengl import *
 
 suivant = False
 change_surface = False
+shift = False
 
 # utilisé pour mettre en pause le programme en attendant
 def attendre_entree():
@@ -75,8 +76,7 @@ class Descente3D(Scene):
         def fnc(u, v):
             return np.cos(u) * np.sin(v)
         derives = [lambda u, v : - np.sin(u) * np.sin(v), lambda u, v: np.cos(u) * np.cos(v)]
-        depart = [random.uniform(-3, 3), random.uniform(-3, 3)]
-        nouvelles_coords = depart[:]
+
 
         def deplace_point(pt, alpha):
             u = interpolate(depart[0], nouvelles_coords[0], alpha)
@@ -92,14 +92,15 @@ class Descente3D(Scene):
         axes = ThreeDAxes(x_range=[-10, 10], y_range=[-10, 10], z_range=[-10, 10])
         labels = axes.get_axis_labels(x_label="x", y_label="y", z_label="z")
         self.play(Create(axes), Create(labels), run_time=4)
-        surface = Surface(lambda u, v: np.array([u, v, fnc(u, v)]),
+
+        surface = OpenGLSurface(lambda u, v: (u, v, fnc(u, v)),
                                 u_range=(-5, 5),
                                 v_range=(-5, 5),
-                                fill_color=BLUE,
-                                resolution=(30, 30),
-                                fill_opacity=0.5
+                                color=BLUE,
+                                shadow=0.2
                                 )
-        surface.set_fill_by_value(axes, [(GREEN_B, -2), (YELLOW, 0), (RED, 2)])
+        surface.reload_shader_wrapper()
+        surface.get_shader_wrapper().shader_folder = "gradient_z"
         surfaces.append(surface)
 
         surface_derive_x = OpenGLSurface(lambda u, v: (u, v, fnc(u, v)),
@@ -127,6 +128,9 @@ class Descente3D(Scene):
         surfaces.append(surface_derive_y)
 
         self.play(Create(surface))
+
+        depart = [random.uniform(-3, 3), random.uniform(-3, 3)]
+        nouvelles_coords = depart[:]
         point = Dot3D(point=[depart[0], depart[1], fnc(depart[0], depart[1])],
                       color=RED,
                       radius=0.08)
@@ -137,18 +141,12 @@ class Descente3D(Scene):
             suivant = False
             if change_surface:
                 change_surface = False
-                if compteur == 0:
-                    surfaces[0].set_opacity(0)
-                    surfaces[1].should_render = True
-                    compteur = 1
-                elif compteur == 1:
-                    surfaces[1].should_render = False
-                    surfaces[2].should_render = True
-                    compteur = 2
+                surfaces[compteur % 3].should_render = False
+                if shift:
+                    compteur -= 1
                 else:
-                    surfaces[0].set_opacity(0.5)
-                    surfaces[2].should_render = False
-                    compteur = 0
+                    compteur += 1
+                surfaces[compteur % 3].should_render = True
                 continue
 
             termine = True
@@ -159,7 +157,7 @@ class Descente3D(Scene):
                 if abs(pentes[var]) > 0.001:
                     termine = False
             #self.play(MoveAlongPath(point, creer_courbe_partielle(depart, nouvelles_coords, fnc)), run_time=0.5)
-            self.play(UpdateFromAlphaFunc(point, deplace_point), run_time=0.5) # TODO : manière plus opti de bouger point? (gros délais)
+            self.play(UpdateFromAlphaFunc(point, deplace_point), run_time=1) # TODO : manière plus opti de bouger point? (gros délais)
             depart = nouvelles_coords[:]
 
         self.interactive_embed()
@@ -167,11 +165,20 @@ class Descente3D(Scene):
     def on_key_press(self, symbol, modifiers):
         global suivant
         global change_surface
+        global shift
         if symbol == key.SPACE:
             suivant = True
         if symbol == key.TAB:
             suivant = True
             change_surface = True
+        if symbol == key.LSHIFT:
+            shift = True
+
+    def on_key_release(self, symbol, modifiers):
+        global shift
+        if symbol == key.LSHIFT:
+            shift = False
+
 
 
 
