@@ -25,7 +25,7 @@ def passe_avant(reseau : Reseau, entrees : list) -> list:
             if len(signature(couche[j].fonction_activation).parameters) == 1:
                 sortie = couche[j].fonction_activation(sorties[i+1][0][j])
             else:
-                sortie = couche[j].fonction_activation(sorties[i + 1][0][j], sorties[i + 1])
+                sortie = couche[j].fonction_activation(sorties[i + 1][0][j], sorties[i + 1][0])
             sorties[i + 1][1].append(sortie)
     return sorties
 
@@ -41,14 +41,15 @@ def derive_Relu(x):
 def softmax(x, autres_sorties):
     return float(np.exp(x) / sum(np.exp(autres_sorties)))
 
-def derive_softmax(x, autres_sorties):
-    return
 
-def passe_arriere(reseau : Reseau, sorties_attendues : list, sorties : list):
+def passe_arriere(reseau : Reseau, sorties_attendues : list, sorties : list, fac_apprentissage : float):
     """
-    Application de l'algorithme de rétropropagation du gradient
-    sorties attendues : forme [(1, 2, 3, ...), (3, 2, 1, ...), ...]
+    Application de l'algorithme de rétro propagation du gradient
+    sorties_attendues : forme [(1, 2, 3, ...), (3, 2, 1, ...), ...]
+    sorties : liste de sorties obtenues par passe_avant()
     """
+
+    maj_poids = []
     # on itère sur le nombre d'exemples testés, i représente un exemple
     for i in range(len(sorties_attendues)):
         sorties_exemple = sorties[i]
@@ -62,16 +63,34 @@ def passe_arriere(reseau : Reseau, sorties_attendues : list, sorties : list):
             gradients_neurones[0].append(sorties_exemple[-1][1][neurone] - sorties_attendues[i][neurone])
 
         # calcul des gradients des neurones des couches cachées
-        for couche in range(1, len(reseau.couches), -1):
+        for couche in range(len(reseau.couches) - 1, 0, -1):
             gradients_neurones.insert(0, [])
             for neurone in range(len(reseau.couches[couche])):
+                # règle de la chaine : responsabilité de l'erreur sur neurones suivantes * dérivée de l'activation par
+                # rapport au résultat de la somme pondérée
                 derive_poids_suivants = sum([gradients_neurones[1][j] * reseau.couches[couche][neurone].poids[j-1]
                                              for j in range(1, len(gradients_neurones[1]))])
                 derive_activation = reseau.couches[couche][neurone].derive_fonction_activation(sorties_exemple[couche][neurone][1])
                 gradients_neurones[0].append(derive_activation * derive_poids_suivants)
 
-        maj_poids = []
+        maj_poids.append([])
+        for couche in range(len(reseau.couches)):
+            maj_poids[i].append([])
+            for neurone in range(len(reseau.couches[couche])):
+                maj_poids[i][couche].append([])
+                # cas du biais :
+                maj_poids[i][couche][neurone].append(gradients_neurones[couche][neurone])
+                for poids in range(1, len(reseau.couches[couche][neurone].poids)):
+                    maj_poids[i][couche][neurone].append(sorties_exemple[couche - 1][neurone][1] * gradients_neurones[couche][neurone])
 
+    for couche in range(len(maj_poids[0])):
+        for neurone in range(len(maj_poids[0][couche])):
+            nouveaux_poids = []
+            for poids in range(len(maj_poids[0][couche][neurone])):
+                # moyenne de la modification du poids sur les exemples traités
+                nouveaux_poids.append(reseau.couches[couche][neurone].poids[poids]
+                                      - fac_apprentissage * sum([maj_poids[i][couche][neurone][poids] for i in range(len(maj_poids))]) / len(maj_poids))
+            reseau.couches[couche][neurone].changer_poids(nouveaux_poids)
 
     
 
@@ -116,6 +135,13 @@ if __name__ == "__main__":
     print(one_hot(label[indice]))
 """
 
-test_reseau = Reseau(2, [(1, Relu, derive_Relu)])
+# dérivée softmax non nécessaire dû aux simplifications
+test_reseau = Reseau(2, [(2, softmax, None)])
 print(test_reseau)
 print(passe_avant(test_reseau, [1, 1]))
+for i in range(10):
+    passe_arriere(test_reseau,
+                  [(1, 0), (0, 1)],
+                  [passe_avant(test_reseau,[1, 1]), passe_avant(test_reseau, [1, -1])],
+                  0.5)
+    print(test_reseau)

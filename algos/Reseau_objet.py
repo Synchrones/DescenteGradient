@@ -32,7 +32,7 @@ class Reseau():
     '''
     couches : list
     
-    def __init__(self, nb_entrees : float, couches : list):
+    def __init__(self, nb_entrees : int, couches : list):
         '''
         Reseau de neuronnes, une matrice qui représente chaque nœud, qui contient la liste des poids des
         neurones qui en sortent.
