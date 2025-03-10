@@ -32,11 +32,12 @@ class Reseau():
     '''
     couches : list
     
-    def __init__(self, entrees, couches : list):
+    def __init__(self, nb_entrees : float, couches : list):
         '''
-        Reseau de neuronnes, une matrice qui représente chaque noeuds, qui contient la liste des poids des
+        Reseau de neuronnes, une matrice qui représente chaque nœud, qui contient la liste des poids des
         neurones qui en sortent.
-        parametres : 
+        Parametres :
+        nb_entrees : le nombre d'entrées du réseau
         couches : liste des couches du réseau contient le nombre de noeuds pour la couche de l'indice, la fonction
         d'activation et sa dérivée. Ex : [(10, fnc1, derive1), (6, fnc2, derive2), ...]
         '''
@@ -44,8 +45,8 @@ class Reseau():
         for i, couche in enumerate(couches):
             if i == 0:
                 self.couches.append(
-                    [Neurone([random.uniform(-0.5, 0.5) for _ in range(entrees + 1)], couche[1], couche[2]) for _ in
-                    range(couche[0])])
+                    [Neurone([random.uniform(-0.5, 0.5) for _ in range(nb_entrees + 1)], couche[1], couche[2]) for _ in
+                     range(couche[0])])
             else:
                 self.couches.append([Neurone([random.uniform(-0.5, 0.5) for _ in range(couches[i-1][0] + 1)], couche[1], couche[2]) for _ in range(couche[0])])
 
