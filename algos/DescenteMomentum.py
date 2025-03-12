@@ -10,6 +10,7 @@ def descente_gradient(derives, depart, epsilon, pas, facteur_momentum):
     IN : depart (list(float)) - le point de départ de la descente
     IN : epsilon (float) - la valeur de la dérivée à partir de laquelle on arrête la descente (on n'atteint pas forcément le 0)
     IN : pas (float) - la vitesse de convergence (ne doit pas être trop gros ou trop petit)
+    IN : facteur_momentum (float) - le facteur de prise de momentum
     """
     iterations = 0
     terminer = False
