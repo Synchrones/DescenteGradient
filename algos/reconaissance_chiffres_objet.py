@@ -65,16 +65,15 @@ def passe_arriere(reseau : Reseau, sorties_attendues : list, sorties : list, fac
                 gradients_neurones[0].append(sorties_exemple[-1][1][neurone] - sorties_attendues[i][neurone])
 
             # calcul des gradients des neurones des couches cachées
-            for couche in range(len(reseau.couches) - 1, 0, -1):
+            for couche in range(len(reseau.couches) - 2, -1, -1):
                 gradients_neurones.insert(0, [])
                 for neurone in range(len(reseau.couches[couche])):
                     # règle de la chaine : responsabilité de l'erreur sur neurones suivantes * dérivée de l'activation par
                     # rapport au résultat de la somme pondérée
-                    derive_poids_suivants = sum([gradients_neurones[1][j] * reseau.couches[couche][neurone].poids[j-1]
-                                                 for j in range(1, len(gradients_neurones[1]))])
-                    derive_activation = reseau.couches[couche][neurone].derive_fonction_activation(sorties_exemple[couche][neurone][1])
+                    derive_poids_suivants = sum([gradients_neurones[1][j] * reseau.couches[couche+1][j].poids[neurone+1]
+                                                 for j in range(len(gradients_neurones[1]))])
+                    derive_activation = reseau.couches[couche][neurone].derive_fonction_activation(sorties_exemple[couche+1][0][neurone])
                     gradients_neurones[0].append(derive_activation * derive_poids_suivants)
-
 
             maj_poids.append([])
             for couche in range(len(reseau.couches)):
@@ -85,6 +84,8 @@ def passe_arriere(reseau : Reseau, sorties_attendues : list, sorties : list, fac
                     maj_poids[i][couche][neurone].append(gradients_neurones[couche][neurone])
                     for poids in range(len(reseau.couches[couche][neurone].poids) - 1):
                         maj_poids[i][couche][neurone].append(sorties_exemple[couche][1][poids] * gradients_neurones[couche][neurone])
+    #print(maj_poids)
+    #print(sorties_reseau)
     for couche in range(len(maj_poids[0])):
         for neurone in range(len(maj_poids[0][couche])):
             nouveaux_poids = []
@@ -138,13 +139,13 @@ if __name__ == "__main__":
 """
 
 # dérivée softmax non nécessaire dû aux simplifications
-test_reseau = Reseau(1, [(1, lambda x: x, lambda x:1)])
+test_reseau = Reseau(1, [(1, Relu, derive_Relu), (1, Relu, derive_Relu)])
 print(test_reseau)
 print(passe_avant(test_reseau, [1]))
 
 for i in range(100):
     entrees = [random.uniform(-10, 10) for _ in range(10)]
-    sorties_attendues = [[3 + 10 * entrees[j]] for j in range(10)]
+    sorties_attendues = [[max(entree, 0)] for entree in entrees]
     sorties_reseau = [passe_avant(test_reseau, [entree]) for entree in entrees]
     passe_arriere(test_reseau,
                   sorties_attendues,

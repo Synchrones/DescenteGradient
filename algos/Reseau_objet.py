@@ -45,10 +45,10 @@ class Reseau():
         for i, couche in enumerate(couches):
             if i == 0:
                 self.couches.append(
-                    [Neurone([random.uniform(-0.5, 0.5) for _ in range(nb_entrees + 1)], couche[1], couche[2]) for _ in
+                    [Neurone([0] + [random.uniform(-0.5, 0.5) for _ in range(nb_entrees)], couche[1], couche[2]) for _ in
                      range(couche[0])])
             else:
-                self.couches.append([Neurone([random.uniform(-0.5, 0.5) for _ in range(couches[i-1][0] + 1)], couche[1], couche[2]) for _ in range(couche[0])])
+                self.couches.append([Neurone([0] + [random.uniform(-0.5, 0.5) for _ in range(couches[i-1][0])], couche[1], couche[2]) for _ in range(couche[0])])
 
 
     def __str__(self):
