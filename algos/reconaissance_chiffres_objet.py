@@ -114,7 +114,10 @@ def one_hot(y) -> list[list]:
         resultat[y] = 1
     return resultat
 
-"""
+
+
+
+
 #scenario
 if __name__ == "__main__":
     #telechargement de la base de donnée
@@ -124,34 +127,52 @@ if __name__ == "__main__":
     X_TEST = TEST.copy()
     label = TRAIN.label.tolist()
     del X_TRAIN['label']
-    #test sur une donnée aléatoire
-    R = Reseau([484, 10, 10])
-    indice = random.randint(0, 40000)
-    entrees = X_TRAIN.loc[indice].tolist()
-    entrees__normalisees = []
-    for element in entrees:
-        entrees__normalisees.append(element/255)
-    preresultat1, resultat1, preresultat2, resultat2 = passe_avant(R, entrees__normalisees)
-    print(f"resultat1 = {resultat1}, resultat2 = {resultat2}")
-    print(resultat2.index(max(resultat2)))
-    print(label[indice])
-    print(one_hot(label[indice]))
+
+    reseau = Reseau(784, [(784, Relu, derive_Relu), (10, softmax, None)])
+    nb_iteration = 50
+    nb_exemples = 10
+    fac_apprentissage = 0.1
+    for i in range(nb_iteration):
+        entrees = []
+        sorties_attendues_chiffre = []
+        sorties_attendues = []
+        sortie_reseau = []
+        print("passe avant")
+        for j in range(nb_exemples):
+            indice = random.randint(0, 40000)
+            entrees.append([element/255 for element in X_TRAIN.loc[indice].tolist()])
+            sorties_attendues_chiffre.append(label[indice])
+            sorties_attendues.append(one_hot(label[indice]))
+            sortie_reseau.append(passe_avant(reseau, entrees[j]))
+        print("passe arrière")
+        passe_arriere(reseau, sorties_attendues, sortie_reseau, fac_apprentissage)
+        erreur = sum([-np.log(sortie_reseau[j][-1][1][sorties_attendues_chiffre[j]]) for j in range(nb_exemples)]) / nb_exemples
+        print(erreur)
+    # tests après entrainement
+    accuracy = 0
+    for i in range(100):
+        indice = random.randint(0, 40000)
+        entree = [element / 255 for element in X_TRAIN.loc[indice].tolist()]
+        accuracy += passe_avant(reseau, entree)[-1][1][label[indice]]
+        print(label[indice], passe_avant(reseau, entree)[-1][1])
+    print(f"accuracy {accuracy/100}")
+
 """
-
 # dérivée softmax non nécessaire dû aux simplifications
-test_reseau = Reseau(1, [(1, Relu, derive_Relu), (1, Relu, derive_Relu)])
+test_reseau = Reseau(1, [(1, Relu, derive_Relu)])
 print(test_reseau)
-print(passe_avant(test_reseau, [1]))
-
-for i in range(100):
-    entrees = [random.uniform(-10, 10) for _ in range(10)]
-    sorties_attendues = [[max(entree, 0)] for entree in entrees]
+print(passe_avant(test_reseau, [2]))
+nb_iteration = 100
+nb_batch = 10
+for i in range(nb_iteration):
+    entrees = [random.uniform(-2, 2) for _ in range(nb_batch)]
+    sorties_attendues = [[entree**2] for entree in entrees]
     sorties_reseau = [passe_avant(test_reseau, [entree]) for entree in entrees]
     passe_arriere(test_reseau,
                   sorties_attendues,
                   sorties_reseau,
-                  0.05)
-    erreur_moy = sum([(sorties_attendues[j][0] - sorties_reseau[j][-1][1][0])**2 for j in range(10)]) / 10
+                  0.1)
+    erreur_moy = sum([(sorties_attendues[j][0] - sorties_reseau[j][-1][1][0])**2 for j in range(nb_batch)]) / nb_batch
     print(erreur_moy)
 print(test_reseau)
-
+"""
