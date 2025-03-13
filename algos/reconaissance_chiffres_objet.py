@@ -114,9 +114,14 @@ def one_hot(y) -> list[list]:
         resultat[y] = 1
     return resultat
 
-
-
-
+"""
+test = Reseau(1, [(10, Relu, derive_Relu), (5, Relu, derive_Relu)])
+test.exporter_poids("test")
+test2 = Reseau(1, [(10, Relu, derive_Relu), (5, Relu, derive_Relu)])
+test2.importer_poids("test")
+print(test)
+print(test2)
+"""
 
 #scenario
 if __name__ == "__main__":
@@ -156,6 +161,9 @@ if __name__ == "__main__":
         accuracy += passe_avant(reseau, entree)[-1][1][label[indice]]
         print(label[indice], passe_avant(reseau, entree)[-1][1])
     print(f"accuracy {accuracy/100}")
+    enregistrement = input("Entrez le nom du fichier si vous souhaitez enregistrer les poids de ce réseau")
+    if enregistrement != "":
+        reseau.exporter_poids(enregistrement)
 
 """
 # dérivée softmax non nécessaire dû aux simplifications
