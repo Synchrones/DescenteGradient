@@ -20,7 +20,7 @@ class Neurone:
 
 
     def changer_poids(self, nouveau_poids):
-        self.poids = nouveau_poids
+        self.poids = nouveau_poids[:]
     
     def __str__(self):
         return f"(poids:{self.poids})"
