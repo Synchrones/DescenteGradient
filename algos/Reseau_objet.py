@@ -62,8 +62,8 @@ class Reseau():
         dict_reseau = {}
         dict_reseau["nb_entrees"] = self.nb_entrees
         dict_reseau["couches"] = [len(couche) for couche in self.couches]
-
-        dict_reseau["poids"] = [[[poids for poids in neurone.poids] for neurone in couche] for couche in self.couches]
+        # on arrondit les poids par soucis de taille de fichier (peut poser pb?)
+        dict_reseau["poids"] = [[[round(poids, 8) for poids in neurone.poids] for neurone in couche] for couche in self.couches]
         with open(f"ReseauxExportes/{nom}.json", "w", encoding='utf-8') as f:
             json.dump(dict_reseau, f, ensure_ascii=False, indent=4)
 

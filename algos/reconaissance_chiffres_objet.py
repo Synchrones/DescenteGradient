@@ -1,15 +1,31 @@
 import random
+import time
 
 from Reseau_objet import *
 import pandas as pd
 import numpy as np
 from inspect import signature
+import cProfile
+from joblib import Parallel, delayed
+import multiprocessing
+
+# utilisé pour la parallélisation
+nombre_coeurs = multiprocessing.cpu_count()
 
 def passe_avant(reseau : Reseau, entrees : list) -> list:
     """
     calcul d'une image au travers d'un réseau de neurone.
+    Parameters
+    ----------
+    reseau : le réseau auquel on applique la passe avant
+    entrees : les entrées passées au réseau
+
+    Returns
+    -------
+    Une liste contenant toutes les informations nécessaires à la passe arrière (cd en dessous)
     """
-    # liste comprenant les informations nécéssaires à la rétropropagation :
+
+    # liste comprenant les informations nécessaires à la rétro propagation :
     # liste de tuples de listes, forme : (valeur avant fnc activation, valeur après), un tuple par couche
     # le premier tuple est celui des entrées
     sorties = [(None, entrees[:])]
@@ -17,7 +33,12 @@ def passe_avant(reseau : Reseau, entrees : list) -> list:
         sorties.append(([], []))
         for neurone in couche:
             # somme pondérée par les poids
-            sortie = sum([([1] + sorties[i][1])[j] * neurone.poids[j] for j in range(len(neurone.poids))])
+            # note : faire une boucle for est beaucoup plus rapide qu'utiliser sum() avec une liste par compréhension
+            # 3 sec contre 4 sec pour 800 neurones environ (dont plus de deux secondes sur ouverture fichiers)
+            # sortie = sum([([1] + sorties[i][1])[j] * neurone.poids[j] for j in range(len(neurone.poids))])
+            sortie = 1 * neurone.poids[0]
+            for poids in range(1, len(neurone.poids)):
+                sortie += sorties[i][1][poids - 1] * neurone.poids[poids]
             sorties[i+1][0].append(sortie)
 
         # il faut appliquer la fonction d'activation après le calcul des sommes pondérés à cause des fncs comme
@@ -26,10 +47,52 @@ def passe_avant(reseau : Reseau, entrees : list) -> list:
             # application de la fonction d'activation
             if len(signature(couche[j].fonction_activation).parameters) == 1:
                 sortie = couche[j].fonction_activation(sorties[i+1][0][j])
-            else:
+            else: # cas de softmax
                 sortie = couche[j].fonction_activation(sorties[i + 1][0][j], sorties[i + 1][0])
             sorties[i + 1][1].append(sortie)
     return sorties
+
+def sortie_reseau(reseau : Reseau, entrees : list):
+    """
+    Similaire à la fonction passe avant mais ne renvoie pas les calculs intermédiaires, seulement la sortie du réseau
+
+    Parameters
+    ----------
+    reseau : le réseau dont on calcule la sortie
+    entrees : les entrees passées au réseau
+
+    Returns
+    -------
+    Les valeurs renvoyées par le réseau sous forme d'une liste
+    """
+    sorties = entrees[:]
+    for i, couche in enumerate(reseau.couches):
+        sorties_couche = []
+        for neurone in couche:
+            # somme pondérée par les poids
+            # note : faire une boucle for est beaucoup plus rapide qu'utiliser sum() avec une liste par compréhension
+            # 3 sec contre 4 sec pour 800 neurones environ (dont plus de deux secondes sur ouverture fichiers)
+            # sortie = sum([([1] + sorties[i][1])[j] * neurone.poids[j] for j in range(len(neurone.poids))])
+            sortie = 1 * neurone.poids[0]
+            for poids in range(1, len(neurone.poids)):
+                sortie += sorties[poids - 1] * neurone.poids[poids]
+
+            sorties_couche.append(sortie)
+
+
+        # il faut appliquer la fonction d'activation après le calcul des sommes pondérés à cause des fncs comme
+        # softmax qui utilisent les résultats des autres neurones
+        for j in range(len(couche)):
+            # application de la fonction d'activation
+            if len(signature(couche[j].fonction_activation).parameters) == 1:
+                sortie = couche[j].fonction_activation(sorties_couche[j])
+            else: # cas de softmax
+                sortie = couche[j].fonction_activation(sorties_couche[j], sorties_couche)
+            sorties_couche[j] = sortie
+        sorties = sorties_couche[:]
+    return sorties
+
+
 
 def Relu(x):
     """
@@ -68,10 +131,13 @@ def passe_arriere(reseau : Reseau, sorties_attendues : list, sorties : list, fac
             for couche in range(len(reseau.couches) - 2, -1, -1):
                 gradients_neurones.insert(0, [])
                 for neurone in range(len(reseau.couches[couche])):
-                    # règle de la chaine : responsabilité de l'erreur sur neurones suivantes * dérivée de l'activation par
+                    # règle de la chaine : responsabilité de l'erreur sur les neurones suivantes * dérivée de l'activation par
                     # rapport au résultat de la somme pondérée
-                    derive_poids_suivants = sum([gradients_neurones[1][j] * reseau.couches[couche+1][j].poids[neurone+1]
-                                                 for j in range(len(gradients_neurones[1]))])
+                    derive_poids_suivants = 0
+                    for gradient in range(len(gradients_neurones[1])):
+                        derive_poids_suivants += gradients_neurones[1][gradient] * reseau.couches[couche+1][gradient].poids[neurone+1]
+                    # derive_poids_suivants = sum([gradients_neurones[1][j] * reseau.couches[couche+1][j].poids[neurone+1]
+                    #                             for j in range(len(gradients_neurones[1]))])
                     derive_activation = reseau.couches[couche][neurone].derive_fonction_activation(sorties_exemple[couche+1][0][neurone])
                     gradients_neurones[0].append(derive_activation * derive_poids_suivants)
 
@@ -91,8 +157,12 @@ def passe_arriere(reseau : Reseau, sorties_attendues : list, sorties : list, fac
             nouveaux_poids = []
             for poids in range(len(maj_poids[0][couche][neurone])):
                 # moyenne de la modification du poids sur les exemples traités
-                nouveaux_poids.append(reseau.couches[couche][neurone].poids[poids]
-                                      - fac_apprentissage * sum([maj_poids[i][couche][neurone][poids] for i in range(len(maj_poids))]) / len(maj_poids))
+                moyenne = 0
+                for i in range(len(maj_poids)):
+                    moyenne += maj_poids[i][couche][neurone][poids]
+                nouveaux_poids.append(reseau.couches[couche][neurone].poids[poids] - fac_apprentissage + moyenne / len(maj_poids))
+                # nouveaux_poids.append(reseau.couches[couche][neurone].poids[poids]
+                #                       - fac_apprentissage * sum([maj_poids[i][couche][neurone][poids] for i in range(len(maj_poids))]) / len(maj_poids))
             reseau.couches[couche][neurone].changer_poids(nouveaux_poids)
 
 
@@ -122,9 +192,16 @@ test2.importer_poids("test")
 print(test)
 print(test2)
 """
+temps1 = time.time()
+test1 = [i**2 for i in range(100)]
+temps1 = time.time() - temps1
+temps2 = time.time()
+test2 = Parallel(n_jobs=nombre_coeurs)(delayed(lambda x : x**2)(i) for i in range(100))
+temps2 = time.time() - temps2
+print(temps1, temps2)
 
 #scenario
-if __name__ == "__main__":
+def main():
     #telechargement de la base de donnée
     TRAIN = pd.read_csv('train.csv')#, skiprows = 1)
     TEST = pd.read_csv("test.csv")#, skiprows = 1)
@@ -134,6 +211,10 @@ if __name__ == "__main__":
     del X_TRAIN['label']
 
     reseau = Reseau(784, [(784, Relu, derive_Relu), (10, softmax, None)])
+    entree = [element/255 for element in X_TRAIN.loc[random.randint(0, 40000)].tolist()]
+    sortie = passe_avant(reseau, entree)
+    passe_arriere(reseau, [[1, 0, 0, 0, 0, 0, 0, 0, 0, 0]], [sortie], 0.1)
+    """
     nb_iteration = 50
     nb_exemples = 10
     fac_apprentissage = 0.1
@@ -164,7 +245,8 @@ if __name__ == "__main__":
     enregistrement = input("Entrez le nom du fichier si vous souhaitez enregistrer les poids de ce réseau")
     if enregistrement != "":
         reseau.exporter_poids(enregistrement)
-
+    """
+# cProfile.run("main()")
 """
 # dérivée softmax non nécessaire dû aux simplifications
 test_reseau = Reseau(1, [(1, Relu, derive_Relu)])
