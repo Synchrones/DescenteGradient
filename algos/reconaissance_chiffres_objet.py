@@ -107,18 +107,72 @@ def softmax(x, autres_sorties):
     return float(np.exp(x) / sum(np.exp(autres_sorties)))
 
 
-def passe_arriere(reseau : Reseau, sorties_attendues : list, sorties : list, fac_apprentissage : float):
+def passe_arriere(reseau : Reseau, sorties_attendues : list, sorties_reseau : list, fac_apprentissage : float):
     """
     Application de l'algorithme de rétro propagation du gradient
     sorties_attendues : forme [(1, 2, 3, ...), (3, 2, 1, ...), ...]
     sorties : liste de sorties obtenues par passe_avant()
     """
+
+    # note : attention à ne pas passer par des floats numpy dans les calculs car les approximations ont l'air de faire apparaitre
+    # des 0 qui cassent l'algorithme (à vérifier)
+
+    # segmentations des sorties sur lesquels on réalise la retro propagation pour paralléliser l'algorithme
+    # gain de 6 secondes sur 100 sorties avec un processeur 12 cœurs
+    sorties_attendues_partielles = list(decouper_liste(sorties_attendues, nombre_coeurs))
+    sorties_reseau_partielles = list(decouper_liste(sorties_reseau, nombre_coeurs))
+    maj_poids = Parallel(n_jobs=nombre_coeurs)(delayed(calculer_maj_poids)(reseau, sorties_attendues_partielles[i], sorties_reseau_partielles[i]) for i in range(nombre_coeurs))
+    for couche in range(len(maj_poids[0])):
+        # somme_majs_poids_couche = np.sum([maj_poids[i][couche] for i in range(len(maj_poids))], axis=0)
+        for neurone in range(len(maj_poids[0][couche])):
+            nouveaux_poids = []
+            for poids in range(len(maj_poids[0][couche][neurone])):
+                somme_majs_poids = 0
+                for sortie in range(len(maj_poids)):
+                    somme_majs_poids += maj_poids[sortie][couche][neurone][poids]
+                # moyenne de la modification du poids sur les exemples traités
+                nouveaux_poids.append(reseau.couches[couche][neurone].poids[poids] - fac_apprentissage * somme_majs_poids / len(sorties_attendues))
+            reseau.couches[couche][neurone].changer_poids(nouveaux_poids)
+
+
+def decouper_liste(liste, nb_elements):
+    """
+    Découpe une liste en n sous liste de taille égale + une dernière avec le reste
+
+    Parameters
+    ----------
+    liste : la liste à découper
+    nb_elements : le nombre de sous listes voulues
+
+    Returns
+    -------
+    Un tuple contenant les sous listes obtenues par découpage de la liste d'entrée
+    """
+    k, m = divmod(len(liste), nb_elements)
+    return (liste[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(nb_elements))
+
+
+def calculer_maj_poids(reseau, sorties_attendues, sorties_reseau):
+    """
+    Calcul les sommes des modifications à réaliser sur chaque poids pour une liste de sorties données
+
+    Parameters
+    ----------
+    reseau : le réseau dont on calcule la sortie
+    sorties_attendues : les sorties attendues du réseau
+    sorties_reseau : les sorties prévues par le réseau (retournées par la fonction passe_avant)
+
+    Returns
+    -------
+    Les sommes des modifications des poids
+    """
+
     maj_poids = [[[0 for _ in neurone.poids] for neurone in couche] for couche in reseau.couches]
 
-    # on itère sur le nombre d'exemples testés, i représente un exemple
+    # On itère sur les sorties données
     for i in range(len(sorties_attendues)):
 
-        sorties_exemple = sorties[i]
+        sorties_exemple = sorties_reseau[i]
         gradients_neurones = [[]]
 
         # calcul des gradients d'erreur liés à la dernière couche de neurones
@@ -140,22 +194,14 @@ def passe_arriere(reseau : Reseau, sorties_attendues : list, sorties : list, fac
                 #                             for j in range(len(gradients_neurones[1]))])
                 derive_activation = reseau.couches[couche][neurone].derive_fonction_activation(sorties_exemple[couche+1][0][neurone])
                 gradients_neurones[0].append(derive_activation * derive_poids_suivants)
-
                 # calcul des maj des poids
                 # cas du biais :
                 maj_poids[couche][neurone][0] += gradients_neurones[0][neurone]
 
                 for poids in range(1, len(reseau.couches[couche][neurone].poids)):
+                    # On calcule des sommes pour ensuite réaliser la moyenne des modifications
                     maj_poids[couche][neurone][poids] += sorties_exemple[couche][1][poids-1] * gradients_neurones[0][neurone]
-
-
-    for couche in range(len(maj_poids)):
-        for neurone in range(len(maj_poids[couche])):
-            nouveaux_poids = []
-            for poids in range(len(maj_poids[couche][neurone])):
-                # moyenne de la modification du poids sur les exemples traités
-                nouveaux_poids.append(reseau.couches[couche][neurone].poids[poids] - fac_apprentissage + maj_poids[couche][neurone][poids] / len(maj_poids))
-            reseau.couches[couche][neurone].changer_poids(nouveaux_poids)
+    return maj_poids
 
 
 def one_hot(y) -> list[list]:
@@ -186,7 +232,7 @@ def test_import_export():
 
 #scenario
 def main():
-    #telechargement de la base de donnée
+    # chargement de la base de donnée
     TRAIN = pd.read_csv('train.csv')#, skiprows = 1)
     TEST = pd.read_csv("test.csv")#, skiprows = 1)
     X_TRAIN = TRAIN.copy()
@@ -201,9 +247,12 @@ def main():
     passe_arriere(reseau, [[1, 0, 0, 0, 0, 0, 0, 0, 0, 0]], [sortie], 0.1)
     """
 
-    nb_iteration = 1
+    nb_iteration = 20
     nb_exemples = 100
     fac_apprentissage = 0.1
+    temps_moyen_passe_avant = 0
+    temps_moyen_passe_arriere = 0
+
     for i in range(nb_iteration):
 
         print("passe avant")
@@ -215,28 +264,33 @@ def main():
         sorties_attendues = [one_hot(label[indice]) for indice in indices]
         # passe avant exécutée en parallèle, deviens plus efficace pour un grand nombre d'exemples (2x plus rapide pour 100)
         sorties_reseau = Parallel(n_jobs=nombre_coeurs)(delayed(lambda reseau, entree : passe_avant(reseau, entree))(reseau, entree) for entree in entrees)
-        print(time.time() - temps)
-
+        print(f"temps d'exécution de la passe avant {time.time() - temps}")
+        temps_moyen_passe_avant += time.time() - temps
         print("passe arrière")
+        temps = time.time()
         passe_arriere(reseau, sorties_attendues, sorties_reseau, fac_apprentissage)
+        print(f"temps d'exécution de la passe arrière {time.time() - temps}")
+        temps_moyen_passe_arriere += time.time() - temps
+
         erreur = sum([-np.log(sorties_reseau[j][-1][1][sorties_attendues_chiffre[j]]) for j in range(nb_exemples)]) / nb_exemples
-        print(erreur)
-    """
+        print(f"erreur du réseau : {erreur}")
+
     # tests après entrainement
     accuracy = 0
     for i in range(100):
-        indice = random.randint(0, 40000)
-        entree = [element / 255 for element in X_TRAIN.loc[indice].tolist()]
-        accuracy += passe_avant(reseau, entree)[-1][1][label[indice]]
+        indice = random.randint(0, 20000)
+        entree = [element / 255 for element in X_TEST.loc[indice].tolist()]
+        accuracy += sortie_reseau(reseau, entree)[label[indice]]
         print(label[indice], passe_avant(reseau, entree)[-1][1])
-    print(f"accuracy {accuracy/100}")
+    print(f"précision : {accuracy/100}")
+    print(f"temps moyen d'exécution de la passe avant : {temps_moyen_passe_avant/nb_iteration}")
+    print(f"temps moyen d'exécution de la passe arrière : {temps_moyen_passe_arriere / nb_iteration}")
     enregistrement = input("Entrez le nom du fichier si vous souhaitez enregistrer les poids de ce réseau")
     if enregistrement != "":
         reseau.exporter_poids(enregistrement)
-    """
 
-cProfile.run("main()")
-
+main()
+# cProfile.run("main()")
 def test_reseau():
     # dérivée softmax non nécessaire dû aux simplifications
     test_reseau = Reseau(1, [(1, Relu, derive_Relu)])
