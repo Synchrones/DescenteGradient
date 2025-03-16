@@ -237,31 +237,26 @@ def main():
     TEST = pd.read_csv("test.csv")#, skiprows = 1)
     X_TRAIN = TRAIN.copy()
     X_TEST = TEST.copy()
-    label = TRAIN.label.tolist()
+    label_train = TRAIN.label.tolist()
     del X_TRAIN['label']
-
+    # label_test = TEST.label.tolist() pas de labels dans le fichier de tests??
+    # del X_TEST['label']
     reseau = Reseau(784, [(784, Relu, derive_Relu), (10, softmax, None)])
-    """
-    entree = [element/255 for element in X_TRAIN.loc[random.randint(0, 40000)].tolist()]
-    sortie = passe_avant(reseau, entree)
-    passe_arriere(reseau, [[1, 0, 0, 0, 0, 0, 0, 0, 0, 0]], [sortie], 0.1)
-    """
 
-    nb_iteration = 20
+    nb_iteration = 400
     nb_exemples = 100
     fac_apprentissage = 0.1
     temps_moyen_passe_avant = 0
     temps_moyen_passe_arriere = 0
-
     for i in range(nb_iteration):
 
         print("passe avant")
         # récupération des images dans la base de données
         temps = time.time()
-        indices = [random.randint(0, 40000) for _ in range(nb_exemples)]
+        indices = [i * nb_exemples + j for j in range(nb_exemples)]
         entrees = [[element/255 for element in X_TRAIN.loc[indice].tolist()] for indice in indices]
-        sorties_attendues_chiffre = [label[indice] for indice in indices]
-        sorties_attendues = [one_hot(label[indice]) for indice in indices]
+        sorties_attendues_chiffre = [label_train[indice] for indice in indices]
+        sorties_attendues = [one_hot(label_train[indice]) for indice in indices]
         # passe avant exécutée en parallèle, deviens plus efficace pour un grand nombre d'exemples (2x plus rapide pour 100)
         sorties_reseau = Parallel(n_jobs=nombre_coeurs)(delayed(lambda reseau, entree : passe_avant(reseau, entree))(reseau, entree) for entree in entrees)
         print(f"temps d'exécution de la passe avant {time.time() - temps}")
@@ -279,9 +274,9 @@ def main():
     accuracy = 0
     for i in range(100):
         indice = random.randint(0, 20000)
-        entree = [element / 255 for element in X_TEST.loc[indice].tolist()]
-        accuracy += sortie_reseau(reseau, entree)[label[indice]]
-        print(label[indice], passe_avant(reseau, entree)[-1][1])
+        entree = [element / 255 for element in X_TRAIN.loc[indice].tolist()]
+        accuracy += sortie_reseau(reseau, entree)[label_train[indice]]
+        print(label_train[indice], passe_avant(reseau, entree)[-1][1])
     print(f"précision : {accuracy/100}")
     print(f"temps moyen d'exécution de la passe avant : {temps_moyen_passe_avant/nb_iteration}")
     print(f"temps moyen d'exécution de la passe arrière : {temps_moyen_passe_arriere / nb_iteration}")
