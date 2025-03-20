@@ -234,16 +234,19 @@ def test_import_export():
 def main():
     # chargement de la base de donnée
     TRAIN = pd.read_csv('train.csv')#, skiprows = 1)
-    TEST = pd.read_csv("test.csv")#, skiprows = 1)
-    X_TRAIN = TRAIN.copy()
-    X_TEST = TEST.copy()
-    label_train = TRAIN.label.tolist()
+    X_TRAIN = TRAIN.copy()[:30000]
+    X_TEST = TRAIN.copy()[30000:35000]
+    X_VALID =TRAIN.copy()[35000:]
+    label_train = X_TRAIN.label.tolist()
     del X_TRAIN['label']
-    # label_test = TEST.label.tolist() pas de labels dans le fichier de tests??
-    # del X_TEST['label']
-    reseau = Reseau(784, [(784, Relu, derive_Relu), (10, softmax, None)])
+    label_test = X_TEST.label.tolist()
+    del X_TEST['label']
+    label_valid = X_VALID.label.tolist()
+    del X_VALID['label']
 
-    nb_iteration = 400
+    reseau = Reseau(784, [(784, Relu, derive_Relu), (10, softmax, None)])
+    reseau.importer_poids("epoch1-batch100")
+    nb_iteration = 0
     nb_exemples = 100
     fac_apprentissage = 0.1
     temps_moyen_passe_avant = 0
@@ -273,13 +276,13 @@ def main():
     # tests après entrainement
     accuracy = 0
     for i in range(100):
-        indice = random.randint(0, 20000)
-        entree = [element / 255 for element in X_TRAIN.loc[indice].tolist()]
-        accuracy += sortie_reseau(reseau, entree)[label_train[indice]]
-        print(label_train[indice], passe_avant(reseau, entree)[-1][1])
+        indice = random.randint(0, 5000)
+        entree = [element / 255 for element in X_TEST.loc[indice+30000].tolist()]
+        accuracy += sortie_reseau(reseau, entree)[label_test[indice]]
+        print(label_test[indice], passe_avant(reseau, entree)[-1][1])
     print(f"précision : {accuracy/100}")
-    print(f"temps moyen d'exécution de la passe avant : {temps_moyen_passe_avant/nb_iteration}")
-    print(f"temps moyen d'exécution de la passe arrière : {temps_moyen_passe_arriere / nb_iteration}")
+    #print(f"temps moyen d'exécution de la passe avant : {temps_moyen_passe_avant/nb_iteration}")
+    #print(f"temps moyen d'exécution de la passe arrière : {temps_moyen_passe_arriere / nb_iteration}")
     enregistrement = input("Entrez le nom du fichier si vous souhaitez enregistrer les poids de ce réseau")
     if enregistrement != "":
         reseau.exporter_poids(enregistrement)
