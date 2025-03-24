@@ -137,7 +137,7 @@ def passe_arriere(reseau : Reseau, sorties_attendues : list, sorties_reseau : li
 
 def decouper_liste(liste, nb_elements):
     """
-    Découpe une liste en n sous liste de taille égale + une dernière avec le reste
+    Découpe une liste en nb_element - 1 sous-listes de tailles égales + une dernière avec le reste
 
     Parameters
     ----------
@@ -194,12 +194,11 @@ def calculer_maj_poids(reseau, sorties_attendues, sorties_reseau):
                 #                             for j in range(len(gradients_neurones[1]))])
                 derive_activation = reseau.couches[couche][neurone].derive_fonction_activation(sorties_exemple[couche+1][0][neurone])
                 gradients_neurones[0].append(derive_activation * derive_poids_suivants)
-                # calcul des maj des poids
+                # calcul des maj des poids, on réalise des sommes pour ensuite calculer la moyenne des modifications
                 # cas du biais :
                 maj_poids[couche][neurone][0] += gradients_neurones[0][neurone]
-
+                # autres poids
                 for poids in range(1, len(reseau.couches[couche][neurone].poids)):
-                    # On calcule des sommes pour ensuite réaliser la moyenne des modifications
                     maj_poids[couche][neurone][poids] += sorties_exemple[couche][1][poids-1] * gradients_neurones[0][neurone]
     return maj_poids
 
@@ -288,16 +287,17 @@ def main():
 
 main()
 # cProfile.run("main()")
+
+# test sur des regréssions linéaires
 def test_reseau():
-    # dérivée softmax non nécessaire dû aux simplifications
     test_reseau = Reseau(1, [(1, Relu, derive_Relu)])
     print(test_reseau)
     print(passe_avant(test_reseau, [2]))
     nb_iteration = 100
     nb_batch = 10
     for i in range(nb_iteration):
-        entrees = [random.uniform(-2, 2) for _ in range(nb_batch)]
-        sorties_attendues = [[entree**2] for entree in entrees]
+        entrees = [random.uniform(-5, 5) for _ in range(nb_batch)]
+        sorties_attendues = [[2 + 3*entree] for entree in entrees]
         sorties_reseau = [passe_avant(test_reseau, [entree]) for entree in entrees]
         passe_arriere(test_reseau,
                       sorties_attendues,
