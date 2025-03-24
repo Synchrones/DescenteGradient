@@ -3,11 +3,11 @@ from collections.abc import Callable
 import json
 
 class Neurone:
-    '''
-    Definis une "neurone", objet qui représente la liaison entre deux noeuds du réseau, caractérisé
-    par la liste des poids qui lui entrent dedans, un biais et une fonnction d'activation.
-    Le poid d'indice 0 est le biais
-    '''
+    """
+    Définis un "neurone", objet qui représente la liaison entre deux nœuds du réseau, caractérisé
+    par la liste des poids la liant aux neurones de la couche précédente et une fonction d'activation.
+    Le poids d'indice 0 est le biais
+    """
 
     poids : list
     fonction_activation : Callable
@@ -26,17 +26,13 @@ class Neurone:
         return f"(poids:{self.poids})"
 
 
-class Reseau():
-    '''
-    Objet du réseau de neurones, reçoit un nombre d'entrées, de couches et de sorties, représente un réseau
-    avec la liste des entrées, une liste aléatoire de sorties et la liste des neurones.
-    '''
+class Reseau:
     couches : list
     nb_entrees : int
     def __init__(self, nb_entrees : int, couches : list):
         '''
-        Reseau de neuronnes, une matrice qui représente chaque nœud, qui contient la liste des poids des
-        neurones qui en sortent.
+        Réseau de neurones, organisé sous forme de couches contenant chacunes des neurones (type Neurone)
+
         Parametres :
         nb_entrees : le nombre d'entrées du réseau
         couches : liste des couches du réseau contient le nombre de noeuds pour la couche de l'indice, la fonction

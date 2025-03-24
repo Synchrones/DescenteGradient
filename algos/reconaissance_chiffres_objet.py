@@ -14,7 +14,7 @@ nombre_coeurs = multiprocessing.cpu_count()
 
 def passe_avant(reseau : Reseau, entrees : list) -> list:
     """
-    calcul d'une image au travers d'un réseau de neurone.
+    Calcul d'une image au travers d'un réseau de neurone.
     Parameters
     ----------
     reseau : le réseau auquel on applique la passe avant
@@ -34,7 +34,7 @@ def passe_avant(reseau : Reseau, entrees : list) -> list:
         for neurone in couche:
             # somme pondérée par les poids
             # note : faire une boucle for est beaucoup plus rapide qu'utiliser sum() avec une liste par compréhension
-            # 3 sec contre 4 sec pour 800 neurones environ (dont plus de deux secondes sur ouverture fichiers)
+            # gain d'un peu moins d'une seconde pour 800 neurones environ
             # sortie = sum([([1] + sorties[i][1])[j] * neurone.poids[j] for j in range(len(neurone.poids))])
             sortie = 1 * neurone.poids[0]
             for poids in range(1, len(neurone.poids)):
@@ -71,7 +71,7 @@ def sortie_reseau(reseau : Reseau, entrees : list):
         for neurone in couche:
             # somme pondérée par les poids
             # note : faire une boucle for est beaucoup plus rapide qu'utiliser sum() avec une liste par compréhension
-            # 3 sec contre 4 sec pour 800 neurones environ (dont plus de deux secondes sur ouverture fichiers)
+            # gain d'un peu moins d'une seconde pour 800 neurones environ
             # sortie = sum([([1] + sorties[i][1])[j] * neurone.poids[j] for j in range(len(neurone.poids))])
             sortie = 1 * neurone.poids[0]
             for poids in range(1, len(neurone.poids)):
@@ -222,7 +222,6 @@ def one_hot(y) -> list[list]:
     return resultat
 
 def test_import_export():
-
     test = Reseau(1, [(10, Relu, derive_Relu), (5, Relu, derive_Relu)])
     test.exporter_poids("test")
     test2 = Reseau(1, [(10, Relu, derive_Relu), (5, Relu, derive_Relu)])
@@ -230,13 +229,13 @@ def test_import_export():
     print(test)
     print(test2)
 
-#scenario
+
 def main():
     # chargement de la base de donnée
     TRAIN = pd.read_csv('train.csv')#, skiprows = 1)
     X_TRAIN = TRAIN.copy()[:30000]
     X_TEST = TRAIN.copy()[30000:35000]
-    X_VALID =TRAIN.copy()[35000:]
+    X_VALID = TRAIN.copy()[35000:]
     label_train = X_TRAIN.label.tolist()
     del X_TRAIN['label']
     label_test = X_TEST.label.tolist()
@@ -245,8 +244,8 @@ def main():
     del X_VALID['label']
 
     reseau = Reseau(784, [(784, Relu, derive_Relu), (10, softmax, None)])
-    reseau.importer_poids("epoch1-batch100")
-    nb_iteration = 0
+
+    nb_iteration = 50
     nb_exemples = 100
     fac_apprentissage = 0.1
     temps_moyen_passe_avant = 0
@@ -281,8 +280,8 @@ def main():
         accuracy += sortie_reseau(reseau, entree)[label_test[indice]]
         print(label_test[indice], passe_avant(reseau, entree)[-1][1])
     print(f"précision : {accuracy/100}")
-    #print(f"temps moyen d'exécution de la passe avant : {temps_moyen_passe_avant/nb_iteration}")
-    #print(f"temps moyen d'exécution de la passe arrière : {temps_moyen_passe_arriere / nb_iteration}")
+    print(f"temps moyen d'exécution de la passe avant : {temps_moyen_passe_avant/nb_iteration}")
+    print(f"temps moyen d'exécution de la passe arrière : {temps_moyen_passe_arriere / nb_iteration}")
     enregistrement = input("Entrez le nom du fichier si vous souhaitez enregistrer les poids de ce réseau")
     if enregistrement != "":
         reseau.exporter_poids(enregistrement)
@@ -307,4 +306,3 @@ def test_reseau():
         erreur_moy = sum([(sorties_attendues[j][0] - sorties_reseau[j][-1][1][0])**2 for j in range(nb_batch)]) / nb_batch
         print(erreur_moy)
     print(test_reseau)
-

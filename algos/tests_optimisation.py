@@ -33,4 +33,20 @@ def test_liste_append():
         moyenne += temps2 / temps1
     print(f"Append est {moyenne/10} fois plus lent")
 
-test_liste_append()
+
+def test_sum():
+    moyenne = 0
+    for _ in range(10):
+        temps1 = time.time()
+        sum1 = 0
+        for i in range(100000):
+            sum1 += i
+        temps1 = time.time() - temps1
+        temps2 = time.time()
+        sum2 = sum([i for i in range(100000)])
+        temps2 = time.time() - temps2
+        print(temps1, temps2)
+        moyenne += temps2 / temps1
+    print(f"sum() est {moyenne/10} fois plus lent")
+
+test_sum()
