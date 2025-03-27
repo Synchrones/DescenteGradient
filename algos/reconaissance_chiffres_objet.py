@@ -181,6 +181,13 @@ def calculer_maj_poids(reseau, sorties_attendues, sorties_reseau):
             # https://medium.com/towards-data-science/derivative-of-the-softmax-function-and-the-categorical-cross-entropy-loss-ffceefc081d1
             gradients_neurones[0].append(sorties_exemple[-1][1][neurone] - sorties_attendues[i][neurone])
 
+            # calcul des maj des poids, on réalise des sommes pour ensuite calculer la moyenne des modifications
+            # cas du biais :
+            maj_poids[-1][neurone][0] += gradients_neurones[0][neurone]
+            # autres poids
+            for poids in range(1, len(reseau.couches[-1][neurone].poids)):
+                maj_poids[-1][neurone][poids] += sorties_exemple[-2][1][poids - 1] * gradients_neurones[0][neurone]
+
         # calcul des gradients des neurones des couches cachées
         for couche in range(len(reseau.couches) - 2, -1, -1):
             gradients_neurones.insert(0, [])
@@ -194,12 +201,14 @@ def calculer_maj_poids(reseau, sorties_attendues, sorties_reseau):
                 #                             for j in range(len(gradients_neurones[1]))])
                 derive_activation = reseau.couches[couche][neurone].derive_fonction_activation(sorties_exemple[couche+1][0][neurone])
                 gradients_neurones[0].append(derive_activation * derive_poids_suivants)
+
                 # calcul des maj des poids, on réalise des sommes pour ensuite calculer la moyenne des modifications
                 # cas du biais :
                 maj_poids[couche][neurone][0] += gradients_neurones[0][neurone]
                 # autres poids
                 for poids in range(1, len(reseau.couches[couche][neurone].poids)):
                     maj_poids[couche][neurone][poids] += sorties_exemple[couche][1][poids-1] * gradients_neurones[0][neurone]
+
     return maj_poids
 
 
@@ -285,24 +294,27 @@ def main():
     if enregistrement != "":
         reseau.exporter_poids(enregistrement)
 
-main()
-# cProfile.run("main()")
 
 # test sur des regréssions linéaires
 def test_reseau():
-    test_reseau = Reseau(1, [(1, Relu, derive_Relu)])
+    # on n'utilie pas de fonction d'activation pour une simple regréssion linéaire
+    test_reseau = Reseau(1, [(1, lambda x: x, lambda x : 1)])
     print(test_reseau)
-    print(passe_avant(test_reseau, [2]))
-    nb_iteration = 100
+    nb_iteration = 20
     nb_batch = 10
     for i in range(nb_iteration):
-        entrees = [random.uniform(-5, 5) for _ in range(nb_batch)]
-        sorties_attendues = [[2 + 3*entree] for entree in entrees]
+        entrees = [random.uniform(-2, 2) for _ in range(nb_batch)]
+        # définie la fonction que le réseau doit trouver/approximer
+        sorties_attendues = [[2+3*entree] for entree in entrees]
         sorties_reseau = [passe_avant(test_reseau, [entree]) for entree in entrees]
         passe_arriere(test_reseau,
                       sorties_attendues,
                       sorties_reseau,
-                      0.1)
+                      0.5)
         erreur_moy = sum([(sorties_attendues[j][0] - sorties_reseau[j][-1][1][0])**2 for j in range(nb_batch)]) / nb_batch
         print(erreur_moy)
     print(test_reseau)
+
+# main()
+# cProfile.run("main()")
+test_reseau()
