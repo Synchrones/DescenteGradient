@@ -300,21 +300,23 @@ def test_reseau():
     # on n'utilie pas de fonction d'activation pour une simple regréssion linéaire
     test_reseau = Reseau(1, [(1, lambda x: x, lambda x : 1)])
     print(test_reseau)
+
+    # définie la fonction que le réseau doit trouver/approximer
+    fnc = lambda x : 2*x - 9
     nb_iteration = 20
     nb_batch = 10
     for i in range(nb_iteration):
         entrees = [random.uniform(-2, 2) for _ in range(nb_batch)]
-        # définie la fonction que le réseau doit trouver/approximer
-        sorties_attendues = [[2+3*entree] for entree in entrees]
+        sorties_attendues = [[fnc(entree)] for entree in entrees]
         sorties_reseau = [passe_avant(test_reseau, [entree]) for entree in entrees]
         passe_arriere(test_reseau,
                       sorties_attendues,
                       sorties_reseau,
                       0.5)
         erreur_moy = sum([(sorties_attendues[j][0] - sorties_reseau[j][-1][1][0])**2 for j in range(nb_batch)]) / nb_batch
-        print(erreur_moy)
-    print(test_reseau)
+        print(f"erreur moyenne du réseau : {erreur_moy}")
+    print(f"réseau final : {test_reseau}")
 
-main()
+# main()
 # cProfile.run("main()")
-# test_reseau()
+test_reseau()
