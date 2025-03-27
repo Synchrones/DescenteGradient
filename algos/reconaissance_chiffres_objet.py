@@ -315,6 +315,6 @@ def test_reseau():
         print(erreur_moy)
     print(test_reseau)
 
-# main()
+main()
 # cProfile.run("main()")
-test_reseau()
+# test_reseau()
