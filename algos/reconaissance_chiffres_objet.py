@@ -8,6 +8,8 @@ from inspect import signature
 import cProfile
 from joblib import Parallel, delayed
 import multiprocessing
+import matplotlib.pyplot as plt
+
 
 # utilisé pour la parallélisation
 nombre_coeurs = multiprocessing.cpu_count()
@@ -238,7 +240,7 @@ def test_import_export():
     print(test2)
 
 
-def main():
+def entrainement_chiffre():
     # chargement de la base de donnée
     TRAIN = pd.read_csv('train.csv')#, skiprows = 1)
     X_TRAIN = TRAIN.copy()[:30000]
@@ -284,9 +286,9 @@ def main():
     accuracy = 0
     for i in range(100):
         indice = random.randint(0, 5000)
-        entree = [element / 255 for element in X_TEST.loc[indice+30000].tolist()]
-        accuracy += sortie_reseau(reseau, entree)[label_test[indice]]
-        print(label_test[indice], passe_avant(reseau, entree)[-1][1])
+        entree = [element / 255 for element in X_VALID.loc[indice+30000].tolist()]
+        accuracy += sortie_reseau(reseau, entree)[label_valid[indice]]
+        print(label_valid[indice], passe_avant(reseau, entree)[-1][1])
     print(f"précision : {accuracy/100}")
     print(f"temps moyen d'exécution de la passe avant : {temps_moyen_passe_avant/nb_iteration}")
     print(f"temps moyen d'exécution de la passe arrière : {temps_moyen_passe_arriere / nb_iteration}")
@@ -294,10 +296,94 @@ def main():
     if enregistrement != "":
         reseau.exporter_poids(enregistrement)
 
+def parse_pixel_column(pixel_str):
+    """Convertit une chaîne '[  0   0 255 255]' en un tableau numpy [0, 0, 255, 255]"""
+    try:
+        # Supprimer les crochets et diviser en une liste de 4 entiers
+        pixel_values = list(map(int, pixel_str.strip("[]").split()))
+
+        # Vérifier que nous avons bien 4 valeurs (R, G, B, A)
+        if len(pixel_values) != 4:
+            raise ValueError(f"Pixel mal formé: {pixel_str}")
+
+        return np.array(pixel_values[:-1], dtype=np.uint8)
+    except Exception as e:
+        print(f"Erreur de conversion du pixel: {pixel_str} - {e}")
+    return np.array([0, 0, 0], dtype=np.uint8)  # Valeur par défaut (noir opaque)
+
+
+def entrainement_bouteilles():
+    temps_total = time.time()
+    # Lecture de la base de données
+    db = pd.read_csv("donnees_bouteilles/base_de_donnes.csv")
+
+    # Séparation des labels et des pixels
+    labels = db.iloc[:, 0].values.tolist()  # Colonne des labels
+    pixels_data = db.iloc[:, 1:]  # Colonnes des pixels
+    "conversion en liste utilisables par l'algorithme"
+    images = np.array(pixels_data.applymap(parse_pixel_column).values.tolist()).tolist()
+    print(images[0])
+
+    # segmentation de la base de données + aplatissage des listes
+    images_train = [[0.299*pixel[0] + 0.587*pixel[1] + 0.114*pixel[2] for pixel in image] for image in images[:1500]]
+    label_train = labels[:1500]
+    images_test = [[0.299*pixel[0] + 0.587*pixel[1] + 0.114*pixel[2] for pixel in image] for image in images[1500:1700]]
+    label_test = labels[1500:1700]
+    images_valid = [[0.299*pixel[0] + 0.587*pixel[1] + 0.114*pixel[2] for pixel in image] for image in images[1700:]]
+    label_valid = labels[1700:]
+    for i in range(len(images_test)):
+        print(images_test[i])
+    print(label_valid)
+    reseau = Reseau(3600, [(3600, Relu, derive_Relu), (2, softmax, None)])
+
+    nb_iteration = 5
+    nb_exemples = 30
+    fac_apprentissage = 0.001
+    temps_moyen_passe_avant = 0
+    temps_moyen_passe_arriere = 0
+    for i in range(nb_iteration):
+        print("passe avant")
+        # récupération des images dans la base de données
+        temps = time.time()
+        indices = [random.randint(0, 1500) for j in range(nb_exemples)]
+        entrees = [[element / 255 for element in images_train[indice]] for indice in indices]
+        sorties_attendues_chiffre = [label_train[indice] for indice in indices]
+        # forme [0, 1] ou [1, 0]
+        sorties_attendues = [[1 - label_train[indice], label_train[indice]] for indice in indices]
+        # passe avant exécutée en parallèle, deviens plus efficace pour un grand nombre d'exemples (2x plus rapide pour 100)
+        sorties_reseau = Parallel(n_jobs=nombre_coeurs)(
+            delayed(lambda reseau, entree: passe_avant(reseau, entree))(reseau, entree) for entree in entrees)
+        print(f"temps d'exécution de la passe avant {time.time() - temps}")
+        temps_moyen_passe_avant += time.time() - temps
+        print("passe arrière")
+        temps = time.time()
+        passe_arriere(reseau, sorties_attendues, sorties_reseau, fac_apprentissage)
+        print(f"temps d'exécution de la passe arrière {time.time() - temps}")
+        temps_moyen_passe_arriere += time.time() - temps
+
+        erreur = sum(
+            [-np.log(sorties_reseau[j][-1][1][sorties_attendues_chiffre[j]]) for j in range(nb_exemples)]) / nb_exemples
+        print(f"erreur du réseau : {erreur}")
+
+    # tests après entrainement
+    accuracy = 0
+    for i in range(100):
+        indice = random.randint(0, len(label_valid))
+        entree = [element / 255 for element in images_valid[indice]]
+        accuracy += sortie_reseau(reseau, entree)[label_valid[indice]]
+        print(label_valid[indice], passe_avant(reseau, entree)[-1][1])
+    print(f"précision : {accuracy / 100}")
+    print(f"temps moyen d'exécution de la passe avant : {temps_moyen_passe_avant / nb_iteration}")
+    print(f"temps moyen d'exécution de la passe arrière : {temps_moyen_passe_arriere / nb_iteration}")
+    print(f"Temps total de l'exécution : {time.time() - temps_total}")
+    enregistrement = input("Entrez le nom du fichier si vous souhaitez enregistrer les poids de ce réseau")
+    if enregistrement != "":
+        reseau.exporter_poids(enregistrement)
+
 
 # test sur des regréssions linéaires
 def test_reseau():
-    # on n'utilie pas de fonction d'activation pour une simple regréssion linéaire
+    # on n'utilise pas de fonction d'activation pour une simple regréssion linéaire
     test_reseau = Reseau(1, [(1, lambda x: x, lambda x : 1)])
     print(test_reseau)
 
@@ -317,6 +403,51 @@ def test_reseau():
         print(f"erreur moyenne du réseau : {erreur_moy}")
     print(f"réseau final : {test_reseau}")
 
-# main()
-# cProfile.run("main()")
-test_reseau()
+# entrainement_chiffre()
+# cProfile.run("entrainement_chiffre()")
+# test_reseau()
+entrainement_bouteilles()
+
+
+"""
+# Charger le fichier CSV
+df = pd.read_csv("donnees_bouteilles/base_de_donnes.csv")
+
+# Séparer les labels et les pixels
+labels = df.iloc[:, 0].values  # Colonne des labels
+pixels_data = df.iloc[:, 1:]  # Colonnes des pixels
+
+
+
+
+pixels_array = np.array(pixels_data.applymap(parse_pixel_column).values.tolist())
+
+print(f"Forme après conversion : {pixels_array.shape}")  # Devrait être (1997, 3600, 4)
+
+n_samples, n_pixels, n_channels = pixels_array.shape
+
+# Vérifier que chaque pixel a bien 4 valeurs
+if n_channels != 4:
+    raise ValueError(f"Erreur: Chaque pixel doit avoir 4 valeurs, mais shape={pixels_array.shape}")
+
+# Vérifier que le nombre total de pixels correspond à une image carrée
+image_size = int(np.sqrt(n_pixels))
+if image_size * image_size != n_pixels:
+    raise ValueError("Les dimensions des images ne sont pas correctes !")
+
+# Reshape pour obtenir (n_samples, 60, 60, 4)
+images = pixels_array.reshape(-1, image_size, image_size, 4).astype("float32") / 255.0
+
+print(f"Nouvelle forme des images : {images.shape}")  # Devrait être (1997, 60, 60, 4)
+
+
+
+
+# Afficher une image (par exemple la première)
+for i in range(10):
+    c = random.randint(1, 1998)
+    plt.imshow(images[c])
+
+    plt.title(f"Label: {labels[c]}")
+    plt.show()
+"""
