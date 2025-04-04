@@ -256,7 +256,7 @@ def entrainement_chiffre():
     reseau = Reseau(784, [(784, Relu, derive_Relu), (10, softmax, None)])
 
     nb_iteration = 50
-    nb_exemples = 100
+    nb_exemples = 30
     fac_apprentissage = 0.1
     temps_moyen_passe_avant = 0
     temps_moyen_passe_arriere = 0
@@ -297,7 +297,7 @@ def entrainement_chiffre():
         reseau.exporter_poids(enregistrement)
 
 def parse_pixel_column(pixel_str):
-    """Convertit une chaîne '[  0   0 255 255]' en un tableau numpy [0, 0, 255, 255]"""
+    """Convertit une chaîne '[  0   0 255 255]' en un tableau numpy [0, 0, 255]"""
     try:
         # Supprimer les crochets et diviser en une liste de 4 entiers
         pixel_values = list(map(int, pixel_str.strip("[]").split()))
@@ -315,38 +315,42 @@ def parse_pixel_column(pixel_str):
 def entrainement_bouteilles():
     temps_total = time.time()
     # Lecture de la base de données
-    db = pd.read_csv("donnees_bouteilles/base_de_donnes.csv")
-
+    db = pd.read_csv("donnees_bouteilles/base_de_donnesV2.csv")
+    # Mélange de la base de donnée
+    db = db.sample(frac=1)
     # Séparation des labels et des pixels
     labels = db.iloc[:, 0].values.tolist()  # Colonne des labels
     pixels_data = db.iloc[:, 1:]  # Colonnes des pixels
     "conversion en liste utilisables par l'algorithme"
-    images = np.array(pixels_data.applymap(parse_pixel_column).values.tolist()).tolist()
+    images = np.array(pixels_data.map(parse_pixel_column).values.tolist()).tolist()
     print(images[0])
 
     # segmentation de la base de données + aplatissage des listes
-    images_train = [[0.299*pixel[0] + 0.587*pixel[1] + 0.114*pixel[2] for pixel in image] for image in images[:1500]]
-    label_train = labels[:1500]
-    images_test = [[0.299*pixel[0] + 0.587*pixel[1] + 0.114*pixel[2] for pixel in image] for image in images[1500:1700]]
-    label_test = labels[1500:1700]
-    images_valid = [[0.299*pixel[0] + 0.587*pixel[1] + 0.114*pixel[2] for pixel in image] for image in images[1700:]]
-    label_valid = labels[1700:]
-    for i in range(len(images_test)):
-        print(images_test[i])
-    print(label_valid)
-    reseau = Reseau(3600, [(3600, Relu, derive_Relu), (2, softmax, None)])
+    # images_train = [[(0.299*pixel[0] + 0.587*pixel[1] + 0.114*pixel[2]) / 255 for pixel in image] for image in images[:4000]]
+    images_train = [[color / 255 for pixel in image for color in pixel] for image in images[:4000]]
+    label_train = labels[:4000]
+    # images_test = [[(0.299*pixel[0] + 0.587*pixel[1] + 0.114*pixel[2]) / 255 for pixel in image] for image in images[4000:5000]]
+    images_test = [[color / 255 for pixel in image for color in pixel] for image in images[4000:5000]]
+    label_test = labels[4000:5000]
+    # images_valid = [[(0.299*pixel[0] + 0.587*pixel[1] + 0.114*pixel[2]) / 255 for pixel in image] for image in images[5000:]]
+    images_valid = [[color / 255 for pixel in image for color in pixel] for image in images[5000:]]
+    label_valid = labels[5000:]
+    print(images_test[0])
+    reseau = Reseau(10800, [(100, Relu, derive_Relu), (2, softmax, None)])
 
-    nb_iteration = 5
+    nb_iteration = 200
     nb_exemples = 30
-    fac_apprentissage = 0.001
+    fac_apprentissage = 0.01
+
     temps_moyen_passe_avant = 0
     temps_moyen_passe_arriere = 0
     for i in range(nb_iteration):
+        print(f"itération {i+1} / {nb_iteration}")
         print("passe avant")
         # récupération des images dans la base de données
         temps = time.time()
-        indices = [random.randint(0, 1500) for j in range(nb_exemples)]
-        entrees = [[element / 255 for element in images_train[indice]] for indice in indices]
+        indices = [(i * nb_exemples + j) % len(images_train) for j in range(nb_exemples)]
+        entrees = [images_train[indice] for indice in indices]
         sorties_attendues_chiffre = [label_train[indice] for indice in indices]
         # forme [0, 1] ou [1, 0]
         sorties_attendues = [[1 - label_train[indice], label_train[indice]] for indice in indices]
@@ -368,9 +372,10 @@ def entrainement_bouteilles():
     # tests après entrainement
     accuracy = 0
     for i in range(100):
-        indice = random.randint(0, len(label_valid))
-        entree = [element / 255 for element in images_valid[indice]]
-        accuracy += sortie_reseau(reseau, entree)[label_valid[indice]]
+        indice = i % len(label_valid)
+        entree = images_valid[indice]
+        sortie = sortie_reseau(reseau, entree)
+        accuracy += sortie[label_valid[indice]] > sortie[1-label_valid[indice]]
         print(label_valid[indice], passe_avant(reseau, entree)[-1][1])
     print(f"précision : {accuracy / 100}")
     print(f"temps moyen d'exécution de la passe avant : {temps_moyen_passe_avant / nb_iteration}")

@@ -2,6 +2,9 @@ import random
 from collections.abc import Callable
 import json
 
+import numpy as np
+
+
 class Neurone:
     """
     Définis un "neurone", objet qui représente la liaison entre deux nœuds du réseau, caractérisé
@@ -42,11 +45,13 @@ class Reseau:
         self.nb_entrees = nb_entrees
         for i, couche in enumerate(couches):
             if i == 0:
+                intervalle_poids = 0.5 # np.sqrt(6/(nb_entrees + len(couche)))
                 self.couches.append(
-                    [Neurone([0] + [random.uniform(-0.5, 0.5) for _ in range(nb_entrees)], couche[1], couche[2]) for _ in
+                    [Neurone([0] + [random.uniform(-intervalle_poids, intervalle_poids) for _ in range(nb_entrees)], couche[1], couche[2]) for _ in
                      range(couche[0])])
             else:
-                self.couches.append([Neurone([0] + [random.uniform(-0.5, 0.5) for _ in range(couches[i-1][0])], couche[1], couche[2]) for _ in range(couche[0])])
+                intervalle_poids = 0.5 #np.sqrt(6 / (len(couches[i-1]) + len(couche)))
+                self.couches.append([Neurone([0] + [random.uniform(-intervalle_poids, intervalle_poids) for _ in range(couches[i-1][0])], couche[1], couche[2]) for _ in range(couche[0])])
 
     def exporter_poids(self, nom : str):
         """
