@@ -255,7 +255,7 @@ def entrainement_chiffre():
 
     reseau = Reseau(784, [(784, Relu, derive_Relu), (10, softmax, None)])
 
-    nb_iteration = 50
+    nb_iteration = 0
     nb_exemples = 30
     fac_apprentissage = 0.1
     temps_moyen_passe_avant = 0
@@ -286,7 +286,7 @@ def entrainement_chiffre():
     accuracy = 0
     for i in range(100):
         indice = random.randint(0, 5000)
-        entree = [element / 255 for element in X_VALID.loc[indice+30000].tolist()]
+        entree = [element / 255 for element in X_VALID.loc[indice+35000].tolist()]
         accuracy += sortie_reseau(reseau, entree)[label_valid[indice]]
         print(label_valid[indice], passe_avant(reseau, entree)[-1][1])
     print(f"précision : {accuracy/100}")
@@ -337,10 +337,11 @@ def entrainement_bouteilles():
     label_valid = labels[5000:]
     print(images_test[0])
     reseau = Reseau(10800, [(100, Relu, derive_Relu), (2, softmax, None)])
+    reseau.importer_poids("bouteilles-epoch1-2655sec")
 
-    nb_iteration = 200
+    nb_iteration = 130
     nb_exemples = 30
-    fac_apprentissage = 0.01
+    fac_apprentissage = 0.05
 
     temps_moyen_passe_avant = 0
     temps_moyen_passe_arriere = 0
@@ -371,13 +372,13 @@ def entrainement_bouteilles():
 
     # tests après entrainement
     accuracy = 0
-    for i in range(100):
+    for i in range(1000):
         indice = i % len(label_valid)
         entree = images_valid[indice]
         sortie = sortie_reseau(reseau, entree)
         accuracy += sortie[label_valid[indice]] > sortie[1-label_valid[indice]]
         print(label_valid[indice], passe_avant(reseau, entree)[-1][1])
-    print(f"précision : {accuracy / 100}")
+    print(f"précision : {accuracy / 1000}")
     print(f"temps moyen d'exécution de la passe avant : {temps_moyen_passe_avant / nb_iteration}")
     print(f"temps moyen d'exécution de la passe arrière : {temps_moyen_passe_arriere / nb_iteration}")
     print(f"Temps total de l'exécution : {time.time() - temps_total}")
